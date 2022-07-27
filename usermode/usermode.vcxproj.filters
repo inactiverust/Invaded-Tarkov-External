@@ -105,5 +105,11 @@
     <ClInclude Include="Player.hpp">
       <Filter>Source Files\Classes</Filter>
     </ClInclude>
+    <ClInclude Include="Physical.hpp">
+      <Filter>Source Files\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="ProceduralWeaponAnimation.hpp">
+      <Filter>Source Files\Classes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

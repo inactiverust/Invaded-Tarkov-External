@@ -12,6 +12,32 @@ bool should_exit;
 #define check_auth false;
 #define using_signed false;
 
+void update()
+{
+	while (true)
+	{
+		pointers::world = (World*)pointers::GOM->get_game_world();
+
+		if (pointers::world)
+			vars::players_list = pointers::world->get_player_list();
+
+		if (vars::players_list.size() > 0)
+		{
+			for (auto& player : vars::players_list)
+			{
+				Player* current = (Player*)player;
+				if (current->is_local_player())
+				{
+					pointers::local_player = current;
+					break;
+				}
+			}
+		}
+
+		std::this_thread::sleep_for(std::chrono::seconds(5));
+	}
+}
+
 void cheat_entry()
 {
 	while (!should_exit)
@@ -21,6 +47,26 @@ void cheat_entry()
 
 	Sleep(40);
 
+	pointers::GOM = memory::read<GameObjectManager*>(pointers::unity_player + oGOM);
+
+	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)update, 0, 0, 0);
+
+	Sleep(40);
+	
+	while (true)
+	{
+		if (pointers::local_player)
+		{
+			pointers::local_player->get_physical()->set_stamina(100.f);
+			pointers::local_player->get_weapon()->set_no_recoil();
+			//pointers::local_player->get_weapon()->set_aim_speed(10.f);
+		}
+		else
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+	}
+	
 }
 
 void load_drv()

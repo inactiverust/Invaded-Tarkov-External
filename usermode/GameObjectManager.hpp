@@ -61,7 +61,8 @@ public:
 				if (strcmp(name, _("GameWorld")) == 0)
 				{
 					auto unk1 = memory::read<uintptr_t>(activeObject.object + 0x30);
-					return memory::read<uintptr_t>(unk1 + 0x18);
+					auto unk2 = memory::read<uintptr_t>(unk1 + 0x18);
+					return memory::read<uintptr_t>(unk2 + 0x28);
 				}
 				activeObject = memory::read<base_object>(activeObject.nextObjectLink);
 			}

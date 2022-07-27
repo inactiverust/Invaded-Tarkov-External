@@ -8,5 +8,8 @@
 #include <Tlhelp32.h>
 #include <iostream>
 #include <filesystem>
+#include <codecvt>
+#include <cassert>
+#include <locale>
 
 #include "xor.hpp"

@@ -135,7 +135,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -178,7 +178,9 @@
     <ClInclude Include="common.hpp" />
     <ClInclude Include="menu.hpp" />
     <ClInclude Include="offsets.hpp" />
+    <ClInclude Include="Physical.hpp" />
     <ClInclude Include="Player.hpp" />
+    <ClInclude Include="ProceduralWeaponAnimation.hpp" />
     <ClInclude Include="World.hpp" />
     <ClInclude Include="xor.hpp" />
   </ItemGroup>

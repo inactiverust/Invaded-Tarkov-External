@@ -13,7 +13,7 @@ private:
 public:
 	std::vector<uintptr_t> get_player_list()
 	{
-		uintptr_t list_ptr = memory::read<uintptr_t>(reinterpret_cast<uintptr_t>(this) + 0x80);
+		uintptr_t list_ptr = memory::read<uintptr_t>(reinterpret_cast<uintptr_t>(this) + 0x88);
 
 		list_info info{};
 
