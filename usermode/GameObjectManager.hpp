@@ -67,6 +67,7 @@ public:
 				activeObject = memory::read<base_object>(activeObject.nextObjectLink);
 			}
 		}
+		return 0;
 	}
 private:
 };

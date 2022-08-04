@@ -11,7 +11,6 @@ public:
 	{
 		uintptr_t body_stamina = memory::read<uintptr_t>((uintptr_t)this + oStamina);
 		uintptr_t hand_stamina = memory::read<uintptr_t>((uintptr_t)this + oHandStamina);
-
 		memory::write<float>(body_stamina + 0x48, value);
 		memory::write<float>(hand_stamina + 0x48, value);
 	}

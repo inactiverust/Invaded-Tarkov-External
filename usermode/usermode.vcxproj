@@ -181,6 +181,7 @@
     <ClInclude Include="Physical.hpp" />
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="ProceduralWeaponAnimation.hpp" />
+    <ClInclude Include="Profile.hpp" />
     <ClInclude Include="World.hpp" />
     <ClInclude Include="xor.hpp" />
   </ItemGroup>
