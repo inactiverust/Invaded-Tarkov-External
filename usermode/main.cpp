@@ -15,7 +15,6 @@ bool should_exit;
 Player* get_local_player()
 {
 	pointers::world = (World*)pointers::GOM->get_game_world();
-
 	if (pointers::world)
 	{
 		vars::players_list = pointers::world->get_player_list();
