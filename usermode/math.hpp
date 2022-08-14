@@ -225,6 +225,22 @@ __forceinline Vector2 CalcAngle(const Vector3& Src, const Vector3& Dst) {
 	return Vector2{ RAD2DEG(asin(dir.y / dir.length())), RAD2DEG(-atan2(dir.x, -dir.z)) };
 }
 
+
+Vector2 calculate_angle(Vector3 source, Vector3 destination)
+{
+	Vector3 difference = source - destination;
+	float length = difference.length();
+
+	Vector2 ret{};
+
+	ret.y = asinf(difference.y / length);
+	ret.x = -atan2f(difference.x, -difference.z);
+
+	ret = { ret.x * 57.29578f, ret.y * 57.29578f };
+
+	return ret;
+}
+
 __forceinline float Dot(const Vector3& Vec1, const Vector3& Vec2) {
 	return Vec1.x * Vec2.x + Vec1.y * Vec2.y + Vec1.z * Vec2.z;
 }

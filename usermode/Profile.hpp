@@ -16,14 +16,22 @@ public:
 	{
 		uintptr_t player_info = memory::read<uintptr_t>((uintptr_t)this + oInfo);
 
-		uintptr_t side = memory::read<uintptr_t>((uintptr_t)this + oSide);
+		uintptr_t settings = memory::read<uintptr_t>(player_info + oSettings);
 
-		uint32_t player_side = memory::read<uint32_t>(side + 0x10);
+		uint64_t nickname_change_date = memory::read<uint64_t>(player_info + oNicknameChangeDate);
 
-		if (memory::read<uint32_t>(player_info + oRegDate) <= 0)
+		uint32_t side = memory::read<uint32_t>(player_info + oSide);
+
+		uint32_t role = memory::read<uint32_t>(settings + 0x10);
+
+		if (nickname_change_date > 0 && (side == 1 || side == 2))
+			return _("Player");
+		else if (nickname_change_date > 0 && side == 4)
+			return _("Player Scav");
+		else
 		{
-            switch (player_side)
-            {
+			switch (role)
+			{
             case 1:
                 return _("Sniper Scav");
                 break;
@@ -81,15 +89,10 @@ public:
             case 4194304:
                 return _("Tagilla");
                 break;
-            }
-		}
-		else if(side == 4)
-		{
-            return "Player Scav";
-		}
-		else
-		{
-			return "Player";
+            default:
+                return _("Undefined");
+                break;
+			}
 		}
 	}
 };

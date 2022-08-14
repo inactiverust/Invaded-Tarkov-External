@@ -161,8 +161,13 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Aimbot.hpp" />
     <ClInclude Include="auth\auth.hpp" />
     <ClInclude Include="auth\skStr.h" />
+    <ClInclude Include="Bone.hpp" />
+    <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="drawing.hpp" />
+    <ClInclude Include="features.hpp" />
     <ClInclude Include="GameObjectManager.hpp" />
     <ClInclude Include="globals.hpp" />
     <ClInclude Include="imgui\imconfig.h" />
@@ -176,7 +181,7 @@
     <ClInclude Include="math.hpp" />
     <ClInclude Include="memory.hpp" />
     <ClInclude Include="common.hpp" />
-    <ClInclude Include="menu.hpp" />
+    <ClInclude Include="Movement.hpp" />
     <ClInclude Include="offsets.hpp" />
     <ClInclude Include="Physical.hpp" />
     <ClInclude Include="Player.hpp" />

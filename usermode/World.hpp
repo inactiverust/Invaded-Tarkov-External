@@ -15,7 +15,7 @@ public:
 	{
 		std::vector<uintptr_t> return_list;
 
-		uintptr_t list_ptr = memory::read<uintptr_t>(reinterpret_cast<uintptr_t>(this) + 0x88);
+		uintptr_t list_ptr = memory::read<uintptr_t>(reinterpret_cast<uintptr_t>(this) + 0x90);
 		if (!list_ptr)
 			return return_list;
 

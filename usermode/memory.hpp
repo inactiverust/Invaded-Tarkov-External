@@ -20,14 +20,48 @@ struct memory_params
 memory_params copy_parameters;
 
 HANDLE hProcess;
+HANDLE dProcess;
 
 int operation = 0;
+int d_operation = 0;
 
 #define STR_BUFFER_SIZE 64
 
 class memory
 {
 public:
+	static void d_wait_finish()
+	{
+		while (operation != operation::finished)
+		{
+			std::this_thread::sleep_for(std::chrono::nanoseconds(0));
+		}
+	}
+
+	template <typename t>
+	static t d_read(uintptr_t base_address)
+	{
+		d_wait_finish();
+		t buffer{};
+		copy_parameters.lpBaseAddress = (void*)base_address;
+		copy_parameters.lpBuffer = &buffer;
+		copy_parameters.nSize = sizeof(buffer);
+		d_operation = operation::read;
+		d_wait_finish();
+		return buffer;
+	}
+
+	template <typename t>
+	static void d_write(uintptr_t base_address, t buffer)
+	{
+		d_wait_finish();
+		copy_parameters.lpBaseAddress = (void*)base_address;
+		copy_parameters.lpBuffer = &buffer;
+		copy_parameters.nSize = sizeof(buffer);
+		d_operation = operation::write;
+		d_wait_finish();
+	}
+
 	static std::string read_str(uintptr_t address, int size = STR_BUFFER_SIZE)
 	{
 		std::unique_ptr<char[]> buffer(new char[size]);
@@ -107,6 +141,11 @@ public:
 		hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
 	}
 
+	static void d_setup(uint32_t pid)
+	{
+		dProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+	}
+
 	static void wait_finish()
 	{
 		while (operation != operation::finished)
@@ -165,6 +204,14 @@ public:
 					WriteProcessMemory(hProcess, copy_parameters.lpBaseAddress, copy_parameters.lpBuffer, copy_parameters.nSize, 0);
 				else if (operation == operation::leave)
 					break;
+				operation = operation::finished;
+			}
+			if (d_operation != operation::finished)
+			{
+				if(operation == operation::read)
+					ReadProcessMemory(dProcess, copy_parameters.lpBaseAddress, copy_parameters.lpBuffer, copy_parameters.nSize, 0);
+				else if (operation == operation::write)
+					WriteProcessMemory(dProcess, copy_parameters.lpBaseAddress, copy_parameters.lpBuffer, copy_parameters.nSize, 0);
 				operation = operation::finished;
 			}
 			std::this_thread::sleep_for(std::chrono::nanoseconds(0));

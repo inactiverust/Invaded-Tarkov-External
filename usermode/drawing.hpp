@@ -4,8 +4,8 @@
 #include "imgui/imgui_impl_dx9.h"
 #include "imgui/imgui_impl_win32.h"
 #include <d3d9.h>
-#include "globals.hpp"
 #include <random>
+#include "globals.hpp"
 
 bool CreateDeviceD3D(HWND hWnd);
 void CleanupDeviceD3D();
@@ -49,6 +49,7 @@ namespace menu
 		ImGui::StyleColorsDark();
 		ImGui_ImplWin32_Init(hwnd);
 		ImGui_ImplDX9_Init(g_pd3dDevice);
+		int selectedBone = 0;
 		bool done = false;
 		while (!done)
 		{
@@ -64,6 +65,7 @@ namespace menu
 				break;
 
 			// Start the Dear ImGui frame
+			static const char* options[]{ "Head", "Chest", "Leg" };
 			ImGui_ImplDX9_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
@@ -72,6 +74,59 @@ namespace menu
 			ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 			static const auto dwFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar;
+			if (!settings::connected)
+			{
+				ImGui::Begin("Invaded", 0, dwFlags);
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.612, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.58, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.612, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.075, 0.078, 0.094, 1.f));
+					if (ImGui::Button("Open Game and Then Click Me"))
+						settings::connected = true;
+					ImGui::PopStyleColor(4);
+				}
+				ImGui::End();
+			}
+			else
+			{
+				ImGui::Begin("Invaded", 0, dwFlags);
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.612, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.58, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.612, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.075, 0.078, 0.094, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(118.f, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.612, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.612, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.687, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.612, 0.f, 0.f, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.075, 0.078, 0.094, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.075, 0.078, 0.094, 1.f));
+					ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.075, 0.078, 0.094, 1.f));;
+					ImGui::Text("In Raid"); ImGui::SameLine(); ImGui::ToggleButton("#raidtoggle", &settings::is_in_raid);
+					if (settings::is_in_raid)
+					{
+						if (ImGui::TreeNode("Exploits"))
+						{
+							ImGui::Text("Infinite Stamina"); ImGui::SameLine(); ImGui::ToggleButton("#staminatoggle", &settings::is_infinite_stamina);
+							ImGui::TreePop();
+						}
+						if (ImGui::TreeNode("Weapon Mods"))
+						{
+							ImGui::Text("No Recoil"); ImGui::SameLine(); ImGui::ToggleButton("#recoiltoggle", &settings::is_no_recoil);
+							ImGui::TreePop();
+						}
+						if (ImGui::TreeNode("Aim Settings"))
+						{
+							ImGui::Text("Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_aimbot);
+							ImGui::TreePop();
+						}
+					}
+				}
+				ImGui::PopStyleColor(12);
+				ImGui::End();
+			}
 			// Rendering
 			ImGui::EndFrame();
 			g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);

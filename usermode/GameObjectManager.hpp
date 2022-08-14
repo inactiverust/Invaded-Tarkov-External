@@ -20,24 +20,41 @@ public:
 		camera_objects[1] = memory::read<uintptr_t>((uintptr_t)this + 0x18);
 
 		char name[256];
-		uintptr_t class_name_ptr = 0;
+		uint64_t class_name_ptr = 0x00;
 
 		base_object activeObject = memory::read<base_object>(camera_objects[1]);
 		base_object lastObject = memory::read<base_object>(camera_objects[0]);
-		if (activeObject.object);
+
+		if (activeObject.object)
 		{
-			while (activeObject.object != 0)
+			while (activeObject.object != 0 && activeObject.object != lastObject.object)
 			{
-				class_name_ptr = memory::read<uintptr_t>(activeObject.object + 0x60);
+				class_name_ptr = memory::read<uint64_t>(activeObject.object + 0x60);
 				memory::copy_memory(class_name_ptr + 0x0, (uintptr_t)&name, sizeof(name));
+
 				if (strcmp(name, _("FPS Camera")) == 0)
 				{
 					auto unk1 = memory::read<uintptr_t>(activeObject.object + 0x30);
 					return memory::read<uintptr_t>(unk1 + 0x18);
 				}
+
 				activeObject = memory::read<base_object>(activeObject.nextObjectLink);
 			}
 		}
+
+		if (lastObject.object)
+		{
+			class_name_ptr = memory::read<uint64_t>(lastObject.object + 0x60);
+			memory::copy_memory(class_name_ptr + 0x0, (uintptr_t)&name, sizeof(name));
+
+			if (strcmp(name, _("FPS Camera")) == 0)
+			{
+				auto unk1 = memory::read<uintptr_t>(lastObject.object + 0x30);
+				return memory::read<uintptr_t>(unk1 + 0x18);
+			}
+		}
+
+		return NULL;
 	}
 
 	uintptr_t get_game_world()
@@ -52,22 +69,37 @@ public:
 		base_object activeObject = memory::read<base_object>(objects[1]);
 		base_object lastObject = memory::read<base_object>(objects[0]);
 
-		if (activeObject.object);
+		if (activeObject.object)
 		{
 			while (activeObject.object != 0 && activeObject.object != lastObject.object)
 			{
 				class_name_ptr = memory::read<uintptr_t>(activeObject.object + 0x60);
 				memory::copy_memory(class_name_ptr + 0x0, (uintptr_t)&name, sizeof(name));
+
 				if (strcmp(name, _("GameWorld")) == 0)
 				{
 					auto unk1 = memory::read<uintptr_t>(activeObject.object + 0x30);
 					auto unk2 = memory::read<uintptr_t>(unk1 + 0x18);
 					return memory::read<uintptr_t>(unk2 + 0x28);
 				}
+
 				activeObject = memory::read<base_object>(activeObject.nextObjectLink);
 			}
 		}
-		return 0;
+
+		if (lastObject.object)
+		{
+			class_name_ptr = memory::read<uint64_t>(lastObject.object + 0x60);
+			memory::copy_memory(class_name_ptr + 0x0, (uintptr_t)&name, 256);
+
+			if (strcmp(name, _("GameWorld")) == 0)
+			{
+				auto unk1 = memory::read<uintptr_t>(lastObject.object + 0x30);
+				auto unk2 = memory::read<uintptr_t>(unk1 + 0x18);
+				return memory::read<uintptr_t>(unk2 + 0x28);
+			}
+		}
+		return NULL;
 	}
 private:
 };

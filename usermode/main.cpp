@@ -1,19 +1,21 @@
 #include "common.hpp"
 #include "memory.hpp"
-#include "globals.hpp"
-#include "menu.hpp"
 
 #include "auth/skStr.h"
 #include "auth/auth.hpp"
 
+#include "drawing.hpp"
+#include "features.hpp"
+
 bool should_exit;
 
-#define check_tarkov false;
-#define check_auth false;
-#define using_signed false;
+#define check_tarkov false
+#define check_auth false
+#define using_signed false
 
-Player* get_local_player()
+void update_player_list()
 {
+	Player* return_player = NULL;
 	pointers::world = (World*)pointers::GOM->get_game_world();
 	if (pointers::world)
 	{
@@ -25,12 +27,61 @@ Player* get_local_player()
 			{
 				Player* current = (Player*)player;
 				if (current->is_local_player())
-					pointers::local_player = current;
+					return_player = current;
 			}
 		}
 	}
-	return NULL;
+	pointers::local_player = return_player;
 }
+
+namespace drawing
+{
+	uintptr_t input_pointer = 140698862838648;
+
+	enum OperationType
+	{
+		finished,
+		line,
+		clear
+	};
+
+	struct Draw_Info
+	{
+		Vector2 head_pos;
+		int operation;
+	};
+
+	void push_esp()
+	{
+		std::vector<Draw_Info> temp_list;
+		for (auto& player : vars::players_list)
+		{
+			Player* current = (Player*)player;
+			if (current == pointers::local_player)
+				continue;
+			Vector3 position = current->get_position(Bone::bones::HumanHead);
+			Vector2 ScreenPos;
+
+			world_to_screen(position, ScreenPos);
+
+			Draw_Info list_entry;
+			list_entry.head_pos = ScreenPos;
+			list_entry.operation = OperationType::line;
+			temp_list.push_back(list_entry);
+		}
+
+		Draw_Info clear;
+		clear.operation = OperationType::clear;
+
+		memory::d_write(input_pointer, clear);
+
+		for (auto& entry : temp_list)
+		{
+			memory::d_write(input_pointer, entry);
+		}
+	}
+}
+
 
 void cheat_entry()
 {
@@ -43,13 +94,27 @@ void cheat_entry()
 
 	pointers::GOM = memory::read<GameObjectManager*>(pointers::unity_player + oGOM);
 
+	if(!pointers::GOM)
+	{
+		ShowWindow(GetConsoleWindow(), SW_SHOW);
+		std::cout << _("Error 2");
+		Sleep(3000);
+		exit(3);
+	}
+
 	while (true)
 	{
-		pointers::local_player = get_local_player();
+		update_player_list();
 		if (pointers::local_player)
 		{
-			pointers::local_player->get_physical()->set_stamina(100.f);
-			pointers::local_player->get_weapon()->set_no_recoil();
+			if (settings::is_in_raid)
+			{
+				camera.object = pointers::GOM->get_fps_camera();
+				features::infinite_stamina();
+				features::no_recoil();
+				features::aimbot();
+				//drawing::push_esp();
+			}
 		}
 	}
 }
@@ -69,6 +134,12 @@ void load_drv()
 
 int main()
 {
+	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)cheat_entry, 0, 0, 0);
+	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::render, 0, 0, 0);
+
+	ScreenCenterX = GetSystemMetrics(SM_CXSCREEN) / 2;
+	ScreenCenterY = GetSystemMetrics(SM_CYSCREEN) / 2;
+
 #if check_tarkov
 	if (memory::get_pid(_("EscapeFromTarkov.exe")))
 	{
@@ -96,17 +167,16 @@ int main()
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)load_drv, 0, 0, 0);
 #endif;
 
-	//Sleep(1000);
-	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)cheat_entry, 0, 0, 0);
-	//CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::render, 0, 0, 0);
+	Sleep(1000);
 
 	for (;;) {
-		if (GetAsyncKeyState(VK_END) != 0)
+		if (settings::connected == true)
 			break;
 		Sleep(1);
 	}
-	std::cout << "loaded";
+
 	vars::target_pid = memory::get_pid(_("EscapeFromTarkov.exe"));
+	vars::draw_pid = memory::get_pid(_("Cheat.exe"));
 
 	pointers::unity_player = memory::find_base_address(vars::target_pid, _(L"UnityPlayer.dll"));
 
@@ -119,6 +189,7 @@ int main()
 	}
 
 	memory::setup(vars::target_pid);
+	memory::d_setup(vars::draw_pid);
 
 	should_exit = true;
 
