@@ -12,11 +12,21 @@ namespace features
 		}
 	}
 
-	void no_recoil()
+	void weapon_mods()
 	{
-		if (settings::is_no_recoil)
+		if (settings::is_no_spread && settings::is_no_recoil)
 		{
-			pointers::local_player->get_weapon()->set_no_recoil();
+			pointers::local_player->get_weapon()->set_effectors();
+			pointers::local_player->get_weapon()->set_mask(0);
+		}
+		else if (settings::is_no_spread)
+		{
+			pointers::local_player->get_weapon()->set_effectors();
+			pointers::local_player->get_weapon()->set_mask(16);
+		}
+		else if (settings::is_no_recoil)
+		{
+			pointers::local_player->get_weapon()->set_mask(1);
 		}
 	}
 

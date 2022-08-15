@@ -10,7 +10,7 @@ namespace Aim
 	void find_target()
 	{
 		Player* return_player = NULL;
-		float min_fov = 99999.f;
+		float min_fov = 9999999.f;
 		for (auto& player : vars::players_list)
 		{
 			Player* current = (Player*)player;
@@ -21,8 +21,9 @@ namespace Aim
 			Vector2 ScreenPos;
 			Vector3 PlayerPos = current->get_position(Bone::bones::HumanBase);
 
-			if (!world_to_screen(PlayerPos, ScreenPos))
-				continue;
+			world_to_screen(PlayerPos, ScreenPos);
+
+			Sleep(0);
 
 			float fov = Calc2D_Dist(Vector2(ScreenCenterX, ScreenCenterY), ScreenPos);
 			

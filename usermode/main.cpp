@@ -111,7 +111,7 @@ void cheat_entry()
 			{
 				camera.object = pointers::GOM->get_fps_camera();
 				features::infinite_stamina();
-				features::no_recoil();
+				features::weapon_mods();
 				features::aimbot();
 				//drawing::push_esp();
 			}

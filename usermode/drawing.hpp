@@ -115,6 +115,7 @@ namespace menu
 						if (ImGui::TreeNode("Weapon Mods"))
 						{
 							ImGui::Text("No Recoil"); ImGui::SameLine(); ImGui::ToggleButton("#recoiltoggle", &settings::is_no_recoil);
+							ImGui::Text("No Spread"); ImGui::SameLine(); ImGui::ToggleButton("#spreadtoggle", &settings::is_no_spread);
 							ImGui::TreePop();
 						}
 						if (ImGui::TreeNode("Aim Settings"))

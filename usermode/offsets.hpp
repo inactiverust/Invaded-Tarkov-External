@@ -14,8 +14,7 @@
 #define oHandStamina 0x40
 
 #define oShooting 0x48
-#define oIntensity 0x70
-#define oAimSpeed 0x198
+#define oMask 0x100
 #define oFireArmController 0x18
 
 #define oCurrent 0x48
