@@ -27,7 +27,10 @@ void update_player_list()
 			{
 				Player* current = (Player*)player;
 				if (current->is_local_player())
+				{
 					return_player = current;
+					break;
+				}
 			}
 		}
 	}
@@ -113,7 +116,8 @@ void cheat_entry()
 				features::infinite_stamina();
 				features::weapon_mods();
 				features::aimbot();
-				//drawing::push_esp();
+				features::insta_aim();
+				std::cout << "list size: " << vars::players_list.size() << "\n";
 			}
 		}
 	}
@@ -135,7 +139,8 @@ void load_drv()
 int main()
 {
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)cheat_entry, 0, 0, 0);
-	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::render, 0, 0, 0);
+	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::render, 0, 0, 0); 
+	//CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::draw_overlay, 0, 0, 0);
 
 	ScreenCenterX = GetSystemMetrics(SM_CXSCREEN) / 2;
 	ScreenCenterY = GetSystemMetrics(SM_CYSCREEN) / 2;

@@ -14,22 +14,23 @@ namespace features
 
 	void weapon_mods()
 	{
-		if (settings::is_no_spread && settings::is_no_recoil)
+		if (settings::is_no_recoil)
 		{
-			pointers::local_player->get_weapon()->set_effectors();
-			pointers::local_player->get_weapon()->set_mask(0);
+			pointers::local_player->get_weapon()->set_no_recoil();
 		}
-		else if (settings::is_no_spread)
+		if (settings::is_no_spread)
 		{
-			pointers::local_player->get_weapon()->set_effectors();
 			pointers::local_player->get_weapon()->set_mask(16);
-		}
-		else if (settings::is_no_recoil)
-		{
-			pointers::local_player->get_weapon()->set_mask(1);
 		}
 	}
 
+	void insta_aim()
+	{
+		if (settings::is_instant_aim)
+		{
+			pointers::local_player->get_weapon()->set_aim_speed(10);
+		}
+	}
 	void aimbot()
 	{
 		if (settings::is_aimbot)

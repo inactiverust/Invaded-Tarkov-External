@@ -192,6 +192,17 @@ public:
 		operation = operation::read;
 		wait_finish();
 	}
+
+	static void write(uintptr_t base_address, void* buffer, size_t size)
+	{
+		wait_finish();
+		copy_parameters.lpBaseAddress = (void*)base_address;
+		copy_parameters.lpBuffer = buffer;
+		copy_parameters.nSize = size;
+		operation = operation::write;
+		wait_finish();
+	}
+
 	static void loop()
 	{
 		while (true)

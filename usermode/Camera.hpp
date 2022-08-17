@@ -49,9 +49,9 @@ bool world_to_screen(const Vector3& world, Vector2& screen)
 	float y = Dot(up_vec, world) + vmatrix._42;
 	float x = Dot(right_vec, world) + vmatrix._41;
 
-	Vector2 temp = Vector2((ScreenCenterX) * (1 + x / w), (ScreenCenterY) * (1 - y / w));
+	Vector2 temp = Vector2((ScreenCenterX) * (1.f + x / w), (ScreenCenterY) * (1.f - y / w));
 
-	if (!temp.y)
+	if (temp.x < 0 || temp.y < 0 || temp.x > ScreenCenterX * 2 || temp.y > ScreenCenterY * 2)
 		return false;
 
 	screen = temp;

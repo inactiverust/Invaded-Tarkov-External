@@ -31,7 +31,6 @@ public:
 			{
 				class_name_ptr = memory::read<uint64_t>(activeObject.object + 0x60);
 				memory::copy_memory(class_name_ptr + 0x0, (uintptr_t)&name, sizeof(name));
-
 				if (strcmp(name, _("FPS Camera")) == 0)
 				{
 					auto unk1 = memory::read<uintptr_t>(activeObject.object + 0x30);
@@ -75,7 +74,6 @@ public:
 			{
 				class_name_ptr = memory::read<uintptr_t>(activeObject.object + 0x60);
 				memory::copy_memory(class_name_ptr + 0x0, (uintptr_t)&name, sizeof(name));
-
 				if (strcmp(name, _("GameWorld")) == 0)
 				{
 					auto unk1 = memory::read<uintptr_t>(activeObject.object + 0x30);

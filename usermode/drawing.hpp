@@ -29,6 +29,61 @@ std::string random_string()
 
 namespace menu
 {
+	/*
+	void draw_overlay()
+	{
+		std::string rand = random_string();
+		WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, rand.c_str(), NULL };
+		::RegisterClassEx(&wc);
+		HWND hwnd = ::CreateWindow(wc.lpszClassName, rand.c_str(), WS_POPUP, 5, 5, 10, 10, NULL, NULL, wc.hInstance, NULL);
+		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+		if (!CreateDeviceD3D(hwnd))
+		{
+			CleanupDeviceD3D();
+			::UnregisterClass(wc.lpszClassName, wc.hInstance);
+			return;
+		}
+		::ShowWindow(hwnd, SW_SHOWDEFAULT);
+		::UpdateWindow(hwnd);
+		bool done = false;
+		while (!done)
+		{
+			::MoveWindow(hwnd, 0, 0, ScreenCenterX, ScreenCenterY, false);
+			MSG msg;
+			while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
+			{
+				::TranslateMessage(&msg);
+				::DispatchMessage(&msg);
+				if (msg.message == WM_QUIT)
+					done = true;
+			}
+			if (done)
+				break;
+
+
+			// Rendering
+			g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
+			g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+			g_pd3dDevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+			D3DCOLOR clear_col_dx = D3DCOLOR_RGBA((int)(clear_color.x * clear_color.w * 255.0f), (int)(clear_color.y * clear_color.w * 255.0f), (int)(clear_color.z * clear_color.w * 255.0f), (int)(clear_color.w * 255.0f));
+			g_pd3dDevice->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, clear_col_dx, 1.0f, 0);
+			if (g_pd3dDevice->BeginScene() >= 0)
+			{
+				g_pd3dDevice->EndScene();
+			}
+			HRESULT result = g_pd3dDevice->Present(NULL, NULL, NULL, NULL);
+
+			// Handle loss of D3D9 device
+			if (result == D3DERR_DEVICELOST && g_pd3dDevice->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
+				ResetDevice();
+		}
+
+		CleanupDeviceD3D();
+		::DestroyWindow(hwnd);
+		::UnregisterClass(wc.lpszClassName, wc.hInstance);
+
+	}
+	*/
 	void render()
 	{
 		std::string rand = random_string();
@@ -116,6 +171,7 @@ namespace menu
 						{
 							ImGui::Text("No Recoil"); ImGui::SameLine(); ImGui::ToggleButton("#recoiltoggle", &settings::is_no_recoil);
 							ImGui::Text("No Spread"); ImGui::SameLine(); ImGui::ToggleButton("#spreadtoggle", &settings::is_no_spread);
+							ImGui::Text("Instant Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_instant_aim);
 							ImGui::TreePop();
 						}
 						if (ImGui::TreeNode("Aim Settings"))

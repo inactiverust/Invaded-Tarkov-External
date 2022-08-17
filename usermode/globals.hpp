@@ -32,6 +32,7 @@ namespace settings
 	bool is_infinite_stamina;
 	bool is_no_recoil;
 	bool is_no_spread;
+	bool is_instant_aim;
 }
 
 namespace keybinds
