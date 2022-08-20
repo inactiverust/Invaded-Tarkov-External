@@ -4666,6 +4666,19 @@ ImVec2 ImGui::CalcTextSize(const char* text, const char* text_end, bool hide_tex
 
     return text_size;
 }
+ImVec2 ImGui::CalcTextSize2(const char* text, float font_sz)
+{
+    ImGuiContext& g = *GImGui;
+
+    ImFont* font = g.Font;
+    const float font_size = font_sz;
+
+    ImVec2 text_size = font->CalcTextSizeA(font_size, FLT_MAX, NULL, text, NULL, NULL);
+
+    text_size.x = IM_FLOOR(text_size.x + 0.99999f);
+
+    return text_size;
+}
 
 // Find window given position, search front-to-back
 // FIXME: Note that we have an inconsequential lag here: OuterRectClipped is updated in Begin(), so windows moved programmatically

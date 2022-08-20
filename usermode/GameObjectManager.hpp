@@ -16,14 +16,15 @@ public:
 	uintptr_t get_fps_camera()
 	{
 		uintptr_t camera_objects[2];
-		camera_objects[0] = memory::read<uintptr_t>((uintptr_t)this + 0x10);
-		camera_objects[1] = memory::read<uintptr_t>((uintptr_t)this + 0x18);
+		camera_objects[0] = memory::read<uintptr_t>((uintptr_t)this + 0x8); //lastMainCameraTagged
+		camera_objects[1] = memory::read<uintptr_t>((uintptr_t)this + 0x10); //MainCameraTagged
 
 		char name[256];
 		uint64_t class_name_ptr = 0x00;
 
-		base_object activeObject = memory::read<base_object>(camera_objects[1]);
 		base_object lastObject = memory::read<base_object>(camera_objects[0]);
+		base_object activeObject = memory::read<base_object>(camera_objects[1]);
+		
 
 		if (activeObject.object)
 		{
@@ -45,7 +46,6 @@ public:
 		{
 			class_name_ptr = memory::read<uint64_t>(lastObject.object + 0x60);
 			memory::copy_memory(class_name_ptr + 0x0, (uintptr_t)&name, sizeof(name));
-
 			if (strcmp(name, _("FPS Camera")) == 0)
 			{
 				auto unk1 = memory::read<uintptr_t>(lastObject.object + 0x30);

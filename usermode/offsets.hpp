@@ -23,7 +23,7 @@
 
 #define oInfo 0x28
 
-#define oNicknameChangeDate 0x78
+#define oRegistrationDate 0x6c
 #define oSettings 0x48
 #define oSide 0x68
 

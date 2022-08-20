@@ -6,12 +6,48 @@
 
 #include "drawing.hpp"
 #include "features.hpp"
-
+#include "drawing.hpp"
 bool should_exit;
 
 #define check_tarkov false
 #define check_auth false
 #define using_signed false
+
+void update_drawing_list()
+{
+	std::vector<Draw_Info> temp_list;
+
+	for (auto& player : vars::players_list)
+	{
+		Player* current = (Player*)player;
+
+		if (current == pointers::local_player)
+			continue;
+		
+		Vector3 HeadPosition = current->get_position(Bone::bones::HumanHead);
+		HeadPosition.y += 0.5;
+		Vector3 BasePosition = (current->get_position(Bone::bones::HumanLFoot) + current->get_position(Bone::bones::HumanRFoot)) / 2;
+		BasePosition.y += 0.2;
+
+		Vector2 HeadScreenPosition;
+		Vector2 BaseScreenPosition;
+
+		if (!world_to_screen(HeadPosition, HeadScreenPosition) || !world_to_screen(BasePosition, BaseScreenPosition))
+			continue;
+
+		Draw_Info info;
+		Player_Info playerInfo;
+
+		playerInfo.type = current->get_profile()->get_role();
+
+		info.Head_Position = HeadScreenPosition;
+		info.Base_Position = BaseScreenPosition;
+		info.p_info = playerInfo;
+
+		temp_list.push_back(info);
+	}
+	vars::drawing_list = std::move(temp_list);
+}
 
 void update_player_list()
 {
@@ -36,55 +72,6 @@ void update_player_list()
 	}
 	pointers::local_player = return_player;
 }
-
-namespace drawing
-{
-	uintptr_t input_pointer = 140698862838648;
-
-	enum OperationType
-	{
-		finished,
-		line,
-		clear
-	};
-
-	struct Draw_Info
-	{
-		Vector2 head_pos;
-		int operation;
-	};
-
-	void push_esp()
-	{
-		std::vector<Draw_Info> temp_list;
-		for (auto& player : vars::players_list)
-		{
-			Player* current = (Player*)player;
-			if (current == pointers::local_player)
-				continue;
-			Vector3 position = current->get_position(Bone::bones::HumanHead);
-			Vector2 ScreenPos;
-
-			world_to_screen(position, ScreenPos);
-
-			Draw_Info list_entry;
-			list_entry.head_pos = ScreenPos;
-			list_entry.operation = OperationType::line;
-			temp_list.push_back(list_entry);
-		}
-
-		Draw_Info clear;
-		clear.operation = OperationType::clear;
-
-		memory::d_write(input_pointer, clear);
-
-		for (auto& entry : temp_list)
-		{
-			memory::d_write(input_pointer, entry);
-		}
-	}
-}
-
 
 void cheat_entry()
 {
@@ -117,7 +104,9 @@ void cheat_entry()
 				features::weapon_mods();
 				features::aimbot();
 				features::insta_aim();
-				std::cout << "list size: " << vars::players_list.size() << "\n";
+				features::no_visor();
+				features::thermal_vision();
+				update_drawing_list();
 			}
 		}
 	}
@@ -139,7 +128,8 @@ void load_drv()
 int main()
 {
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)cheat_entry, 0, 0, 0);
-	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::render, 0, 0, 0); 
+	//CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::render, 0, 0, 0); 
+	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)draw::Initialize, 0, 0, 0);
 	//CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::draw_overlay, 0, 0, 0);
 
 	ScreenCenterX = GetSystemMetrics(SM_CXSCREEN) / 2;
@@ -175,13 +165,12 @@ int main()
 	Sleep(1000);
 
 	for (;;) {
-		if (settings::connected == true)
+		if (GetAsyncKeyState(VK_INSERT) != 0)
 			break;
 		Sleep(1);
 	}
 
 	vars::target_pid = memory::get_pid(_("EscapeFromTarkov.exe"));
-	vars::draw_pid = memory::get_pid(_("Cheat.exe"));
 
 	pointers::unity_player = memory::find_base_address(vars::target_pid, _(L"UnityPlayer.dll"));
 
@@ -194,7 +183,6 @@ int main()
 	}
 
 	memory::setup(vars::target_pid);
-	memory::d_setup(vars::draw_pid);
 
 	should_exit = true;
 

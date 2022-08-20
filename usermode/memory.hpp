@@ -30,38 +30,28 @@ int d_operation = 0;
 class memory
 {
 public:
-	static void d_wait_finish()
+	static uint64_t GetComponentFromGameObject(uint64_t game_object, const char* component_name)
 	{
-		while (operation != operation::finished)
+		char Name[256];
+
+		uint64_t Test = memory::read<uint64_t>(game_object + 0x30);
+
+		for (int i = 0x8; i < 0x1000; i += 0x10)
 		{
-			std::this_thread::sleep_for(std::chrono::nanoseconds(0));
+			uint64_t Fields = memory::read<uint64_t>(memory::read<uint64_t>(Test + i) + 0x28);
+
+			uint64_t NameChain = memory::read_chain(Fields, { 0x0, 0x0, 0x48 });
+
+			memory::copy_memory(NameChain, (uintptr_t)&Name, 256);
+
+			if (strcmp(Name, component_name) == 0)
+			{
+				return Fields;
+			}
 		}
-	}
 
-	template <typename t>
-	static t d_read(uintptr_t base_address)
-	{
-		d_wait_finish();
-		t buffer{};
-		copy_parameters.lpBaseAddress = (void*)base_address;
-		copy_parameters.lpBuffer = &buffer;
-		copy_parameters.nSize = sizeof(buffer);
-		d_operation = operation::read;
-		d_wait_finish();
-		return buffer;
+		return 0;
 	}
-
-	template <typename t>
-	static void d_write(uintptr_t base_address, t buffer)
-	{
-		d_wait_finish();
-		copy_parameters.lpBaseAddress = (void*)base_address;
-		copy_parameters.lpBuffer = &buffer;
-		copy_parameters.nSize = sizeof(buffer);
-		d_operation = operation::write;
-		d_wait_finish();
-	}
-
 	static std::string read_str(uintptr_t address, int size = STR_BUFFER_SIZE)
 	{
 		std::unique_ptr<char[]> buffer(new char[size]);

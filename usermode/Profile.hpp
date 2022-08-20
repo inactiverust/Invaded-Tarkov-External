@@ -16,17 +16,17 @@ public:
 	{
 		uintptr_t player_info = memory::read<uintptr_t>((uintptr_t)this + oInfo);
 
+        uint32_t registration_date = memory::read<uint32_t>(player_info + oRegistrationDate);
+       
+        uint32_t side = memory::read<uint32_t>(player_info + oSide);
+
 		uintptr_t settings = memory::read<uintptr_t>(player_info + oSettings);
 
-		uint64_t nickname_change_date = memory::read<uint64_t>(player_info + oNicknameChangeDate);
+        uint32_t role = memory::read<uint32_t>(settings + 0x10);
 
-		uint32_t side = memory::read<uint32_t>(player_info + oSide);
-
-		uint32_t role = memory::read<uint32_t>(settings + 0x10);
-
-		if (nickname_change_date > 0 && (side == 1 || side == 2))
+		if (registration_date > 0 && (side == 1 || side == 2))
 			return _("Player");
-		else if (nickname_change_date > 0 && side == 4)
+		else if (registration_date > 0 && side == 4)
 			return _("Player Scav");
 		else
 		{

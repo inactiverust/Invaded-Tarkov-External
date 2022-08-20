@@ -19,20 +19,17 @@ namespace Aim
 				continue;
 			
 			Vector2 ScreenPos = {};
-			Vector3 PlayerPos = current->get_position(Bone::bones::HumanPelvis);
-
-			std::cout << PlayerPos.x << " " << PlayerPos.y << " " << PlayerPos.z << "\n";
+			Vector3 PlayerPos = current->get_position(Bone::bones::HumanHead);
 
 			if (!world_to_screen(PlayerPos, ScreenPos))
 				continue;
 
-			float fov = Calc2D_Dist(Vector2(ScreenCenterX, ScreenCenterY), ScreenPos);
-			std::cout << ScreenPos.x << " " << ScreenPos.y << "\n";
+			float distance = Calc2D_Dist(Vector2(ScreenCenterX, ScreenCenterY), ScreenPos);
 
-			if (fov < min_fov);
+			if (distance < min_fov && distance < settings::aim::aim_fov)
 			{
+				min_fov = distance;
 				return_player = current;
-				min_fov = fov;
 			}
 		}
 		vars::aim_player = return_player;

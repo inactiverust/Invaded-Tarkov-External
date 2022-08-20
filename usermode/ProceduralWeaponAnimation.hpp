@@ -19,15 +19,6 @@ public:
 	{
 		uintptr_t breath_effector = memory::read<uintptr_t>((uintptr_t)this + 0x28);
 		memory::write<float>(breath_effector + 0xa4, 0.f);
-
-		uintptr_t walk_effector = memory::read<uintptr_t>((uintptr_t)this + 0x30);
-		memory::write<float>(breath_effector + 0x44, 0.f);
-
-		uintptr_t motion_effector = memory::read<uintptr_t>((uintptr_t)this + 0x38);
-		memory::write<float>(breath_effector + 0xd0, 0.f);
-
-		uintptr_t force_effector = memory::read<uintptr_t>((uintptr_t)this + 0x38);
-		memory::write<float>(breath_effector + 0x28, 0.f);
 	}
 
 	void set_mask(int mask)
