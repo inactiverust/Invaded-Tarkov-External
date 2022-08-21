@@ -23,6 +23,21 @@ namespace features
 		}
 	}
 
+	void do_cham()
+	{
+		if (settings::is_chams)
+		{
+			for (auto& player : vars::players_list)
+			{
+				Player* current = (Player*)player;
+				if (current != pointers::local_player)
+				{
+					current->write_chams();
+				}
+			}
+		}
+	}
+
 	void thermal_vision()
 	{
 		if (settings::is_thermal_vision)

@@ -10,99 +10,6 @@
 #include "Profile.hpp"
 #include "Movement.hpp"
 
-bool null_renderer(const DWORD64 renderer)
-{
-	if (renderer)
-		return false;
-
-	static const int maxMaterialCount = 2;
-	const auto materialCount = memory::read<int>(renderer + 0x158);
-	if (materialCount <= 0 || materialCount > maxMaterialCount)
-		return false;
-
-	const auto materials = memory::read<uintptr_t>(renderer + 0x148);
-
-	if (!materials)
-		return false;
-
-	static const std::vector<DWORD> nullVec(maxMaterialCount, 0);
-	memory::write(materials, (LPVOID)nullVec.data(), materialCount * sizeof(DWORD));
-		return false;
-
-	return true;
-}
-/*
-void Entity::WriteGearChams()t
-{
-	const auto slots = iUnity.ReadList<DWORD64>(iMemory.CalcPointer(this->addresses.object, iOffsets._EFTPlayer.slotViewList));
-
-	for (const auto& slot : slots)
-	{
-		if (!iMemory.IsValidPointer(slot))
-			continue;
-
-		const auto dresses = iUnity.ReadArray<DWORD64>(iMemory.ReadAddress(slot + iOffsets.EFTPlayerBodyShader.Dresses));
-
-		for (const auto& dress : dresses)
-		{
-			if (!iMemory.IsValidPointer(dress))
-				continue;
-
-			const auto renderers = iUnity.ReadArray<DWORD64>(iMemory.ReadAddress(dress + iOffsets.EFTVisualDress.Renderers));
-
-			for (const auto& renderer : renderers)
-			{
-				if (!iMemory.IsValidPointer(renderer))
-					continue;
-
-				this->WriteNullRenderer(iMemory.ReadAddress(renderer + 0x10));
-			}
-		}
-	}
-}
-
-DWORD64 Entity::ReadSkinnedMeshRendererFromSkin(const DWORD64 lod) const
-{
-	const auto className = iMemory.ReadString(iMemory.CalcPointer(lod, iOffsets.UnityObject.className));
-
-	if (className == XOR("Skin"))
-		return iMemory.CalcPointer(lod, { iOffsets.DizSkinningSkin._skinnedMeshRenderer, 0x10, 0x0 });
-	else if (className == XOR("TorsoSkin"))
-		return iMemory.CalcPointer(lod, { iOffsets.EFTVisualTorsoSkin._skin, iOffsets.DizSkinningSkin._skinnedMeshRenderer, 0x10, 0x0 });
-
-	return 0;
-}
-
-void Entity::WriteSkinChams() const
-{
-	const auto bodySkins = iUnity.ReadDictionary(this->addresses.bodyskins);
-
-	for (const auto& loddedSkin : bodySkins)
-	{
-		if (!iMemory.IsValidPointer(loddedSkin.value))
-			continue;
-
-		const auto lods = iUnity.ReadArray<DWORD64>(iMemory.ReadAddress(loddedSkin.value + iOffsets.EFTVisualLoddedSkin._lods));
-
-		for (const auto& skin : lods)
-		{
-			if (!iMemory.IsValidPointer(skin))
-				continue;
-
-			const auto skinnedMeshRenderer = this->ReadSkinnedMeshRendererFromSkin(skin);
-			if (!skinnedMeshRenderer)
-				continue;
-
-			// Check if player is on 2D screen https://www.unknowncheats.me/forum/3491356-post7855.html
-			//const bool bool1 = iMemory.ReadValue<DWORD>(skinnedMeshRenderer + 0x128) & 0x1000;
-			//const bool bool2 = iMemory.ReadValue<DWORD>(skinnedMeshRenderer + 0x168) != 0xFFFFFFFF;
-			//const bool isOn2DScreen = (bool1 && bool2);
-
-			this->WriteNullRenderer(skinnedMeshRenderer);
-		}
-	}
-}
-*/
 class Player
 {
 private:
@@ -112,51 +19,10 @@ public:
 		return memory::read<bool>((uintptr_t)(this) + oIsLocalPlayer);
 	}
 
-	void write_skin_chams()
+	void write_chams()
 	{
-		const auto player_body = memory::read<uintptr_t>((uintptr_t)this + 0xa8);
-
-		const auto p_skins_dict = memory::read<uintptr_t>(player_body + 0x38);
-
-		uint32_t SkinsCount = memory::read<uint32_t>(p_skins_dict + 0x40);
-
-		if (!SkinsCount || SkinsCount > 10000)
-			return;
-
-		uint64_t SkinEntries = memory::read<uint64_t>(p_skins_dict + 0x18);
-
-		for (int i = 0; i < SkinsCount; i++)
-		{
-			uint64_t pBodySkins = memory::read<uint64_t>(SkinEntries + 0x30 + (0x18 * i));
-
-			if (!pBodySkins)
-				continue;
-
-			uint64_t pLodsArray = memory::read<uint64_t>(pBodySkins + 0x18);
-
-			if (!pLodsArray)
-				continue;
-
-			uint32_t LodsCount = memory::read<uint32_t>(pLodsArray + 0x18);
-
-			if (LodsCount > 10)
-				continue;
-
-			for (int j = 0; j < LodsCount; j++)
-			{
-				uint64_t pLodEntry = memory::read<uint64_t>(pLodsArray + 0x20 + (j * 0x8));
-
-				if (j == 1)
-					pLodEntry = memory::read<uint64_t>(pLodEntry + 0x20);
-
-				uint64_t SkinnedMeshRenderer = memory::read<uint64_t>(pLodEntry + 0x20);
-
-				if (!SkinnedMeshRenderer)
-					continue;
-
-				null_renderer(SkinnedMeshRenderer);
-			}
-		}
+		cloth_chams();
+		gear_chams();
 	}
 
 	Vector3 get_position(int bone_index)
@@ -182,5 +48,160 @@ public:
 	Movement* get_movement()
 	{
 		return memory::read<Movement*>((uintptr_t)this + oMovement);
+	}
+
+private:
+	void gear_chams()
+	{
+		if (!this)
+			return;
+
+		uintptr_t player_body = memory::read<uintptr_t>((uintptr_t)this + 0xa8);;
+
+		if (!player_body)
+			return;
+
+		uintptr_t slot_views = memory::read<uintptr_t>(player_body + 0x50);
+
+		if (!slot_views)
+			return;
+
+		uintptr_t slot_views_list = memory::read<uintptr_t>(slot_views + 0x18);
+
+		if (!slot_views_list)
+			return;
+
+		uintptr_t list_pointer = memory::read<uintptr_t>(slot_views_list + 0x10);
+
+		uint32_t sz = memory::read<uint32_t>(slot_views_list + 0x18);
+
+		for (int i = 0; i < sz; i++)
+		{
+			uintptr_t entry = memory::read<uintptr_t>(list_pointer + 0x20 + (0x8 * i));
+
+			if (!entry)
+				continue;
+
+			uintptr_t dresses_array = memory::read<uintptr_t>(entry + 0x40);
+
+			if (!dresses_array)
+				continue;
+
+			uint32_t dress_arr_sz = memory::read<uintptr_t>(dresses_array + 0x18);
+
+			for (int j = 0; j < dress_arr_sz; j++)
+			{
+				uintptr_t dress_entry = memory::read<uintptr_t>(dresses_array + 0x20 + (0x8 * j));
+
+				if (!dress_entry)
+					continue;
+
+				uintptr_t renderer_array = memory::read<uintptr_t>(dress_entry + 0x28);
+
+				if (!renderer_array)
+					continue;
+
+				uint32_t render_arr_sz = memory::read<uint32_t>(renderer_array + 0x18);
+
+				for (int k = 0; k < render_arr_sz; k++)
+				{
+					uintptr_t render_entry = memory::read<uintptr_t>(renderer_array + 0x20 + (0x8 * k));
+
+					if (!render_entry)
+						continue;
+
+					uintptr_t material_dict = memory::read<uintptr_t>(render_entry + 0x10);
+
+					if (!material_dict)
+						continue;
+
+					uint32_t mat_count = memory::read<uint32_t>(material_dict + 0x158);
+
+					if (mat_count > 0 && mat_count < 6) // rofl
+					{
+						uintptr_t material_dictionary_base = memory::read<uintptr_t>(material_dict + 0x148);
+
+						if (!material_dictionary_base)
+							continue;
+
+						for (int l = 0; l < mat_count; l++)
+							memory::write<DWORD>(material_dictionary_base + (l * 0x4), 0);
+					}
+				}
+			}
+		}
+	}
+
+	void cloth_chams()
+	{
+		if (!this)
+			return;
+
+		uintptr_t player_body = memory::read<uintptr_t>((uintptr_t)this + 0xa8);;
+
+		if (!player_body)
+			return;
+
+		uintptr_t skin_dictionary = memory::read<uintptr_t>(player_body + 0x38);
+
+		if (!skin_dictionary)
+			return;
+
+		uint32_t skin_count = memory::read<uint32_t>(skin_dictionary + 0x40);
+
+		uintptr_t skin_list = memory::read<uintptr_t>(skin_dictionary + 0x18);
+
+		if (!skin_count || skin_count > 10000)
+			return;
+
+		for (int i = 0; i < skin_count; i++)
+		{
+			uintptr_t body_skins = memory::read<uintptr_t>(skin_list + 0x30 + (0x18 * i));
+
+			if (!body_skins)
+				continue;
+
+			uintptr_t lod_array = memory::read<uintptr_t>(body_skins + 0x18);
+
+			if (!lod_array)
+				continue;
+
+			int lod_count = memory::read<int>(lod_array + 0x18);
+
+			if (lod_count > 10000)
+				continue;
+
+			for (int j = 0; j < lod_count; j++)
+			{
+			
+				uintptr_t lod_entry = memory::read<uintptr_t>(lod_array + 0x20 + (j * 0x8));
+
+				if (j == 1)
+					lod_entry = memory::read<uintptr_t>(lod_entry + 0x20);
+
+				uintptr_t skinned_mesh_render = memory::read<uintptr_t>(lod_entry + 0x20);
+
+				if (!skinned_mesh_render)
+					continue;
+
+				uintptr_t material_dictionary = memory::read<uintptr_t>(skinned_mesh_render + 0x10);
+
+				if (!material_dictionary)
+					continue;
+
+				uint32_t mat_count = memory::read<uint32_t>(material_dictionary + 0x158);
+
+				if (mat_count > 0 && mat_count < 5)
+				{
+					uintptr_t material_dictionary_base = memory::read<uintptr_t>(material_dictionary + 0x148);
+
+					if (!material_dictionary_base)
+						continue;
+
+					for (int l = 0; l < mat_count; l++)
+						memory::write<DWORD>(material_dictionary_base + (l * 0x4), 0);
+				}
+			}
+		}
 	}
 };

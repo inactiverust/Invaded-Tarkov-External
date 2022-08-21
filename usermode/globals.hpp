@@ -10,6 +10,7 @@
 struct Player_Info
 {
 	std::string type;
+	int distance;
 };
 
 struct Draw_Info
@@ -44,6 +45,7 @@ namespace settings
 	bool is_in_raid;
 	bool is_no_visor;
 	bool is_thermal_vision;
+	bool is_chams;
 	bool is_esp;
 	bool is_aimbot;
 	bool is_infinite_stamina;
@@ -58,6 +60,7 @@ namespace settings
 	namespace esp
 	{
 		bool show_role;
+		bool show_distance;
 	}
 }
 

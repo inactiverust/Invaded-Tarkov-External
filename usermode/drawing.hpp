@@ -198,6 +198,7 @@ namespace draw
                             ImGui::Text("Infinite Stamina"); ImGui::SameLine(); ImGui::ToggleButton("#staminatoggle", &settings::is_infinite_stamina);
                             ImGui::Text("No Visor"); ImGui::SameLine(); ImGui::ToggleButton("#visortoggle", &settings::is_no_visor);
                             ImGui::Text("Thermal Vision"); ImGui::SameLine(); ImGui::ToggleButton("#thermaltoggle", &settings::is_thermal_vision);
+                            ImGui::Text("Chams"); ImGui::SameLine(); ImGui::ToggleButton("#chamtoggle", &settings::is_chams);
                             ImGui::TreePop();
                         }
                         if (ImGui::TreeNode("Weapon Mods"))
@@ -224,6 +225,7 @@ namespace draw
                             if (settings::is_esp)
                             {
                                 ImGui::Text("Show Role"); ImGui::SameLine(); ImGui::ToggleButton("#roletoggle", &settings::esp::show_role);
+                                ImGui::Text("Show Distance"); ImGui::SameLine(); ImGui::ToggleButton("#distancetoggle", &settings::esp::show_distance);
                             }
                             ImGui::TreePop();
                         }
@@ -248,7 +250,12 @@ namespace draw
                 if (settings::esp::show_role)
                 {
                     ImVec2 text_size = ImGui::CalcTextSize2(info.p_info.type.c_str(), 12.f);
-                    draw_list->AddText(ImVec2(info.Base_Position.x - text_size.x / 2, y + height + text_size.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), info.p_info.type.c_str(), NULL, NULL, 12.f);
+                    draw_list->AddText(ImVec2(info.Base_Position.x - text_size.x / 2, y + height + text_size.y / 2), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), info.p_info.type.c_str(), NULL, NULL, 12.f);
+                }
+                if (settings::esp::show_distance)
+                {
+                    ImVec2 text_size = ImGui::CalcTextSize2((std::to_string(info.p_info.distance) + "m").c_str(), 12.f);
+                    draw_list->AddText(ImVec2(info.Base_Position.x - text_size.x / 2, y - text_size.y * 1.5), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), (std::to_string(info.p_info.distance) + "m").c_str(), NULL, NULL, 12.f);
                 }
                
             }
@@ -278,7 +285,6 @@ namespace draw
             {
                 style &= ~WS_EX_LAYERED;
                 SetWindowLongPtr(h_hWnd, GWL_EXSTYLE, style);
-                Sleep(10);
             }
             else
             {

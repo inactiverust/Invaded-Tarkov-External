@@ -7,7 +7,9 @@
 #include "drawing.hpp"
 #include "features.hpp"
 #include "drawing.hpp"
+
 bool should_exit;
+bool do_once = true;
 
 #define check_tarkov false
 #define check_auth false
@@ -16,6 +18,8 @@ bool should_exit;
 void update_drawing_list()
 {
 	std::vector<Draw_Info> temp_list;
+
+	Vector3 LocalPosition = pointers::local_player->get_position(Bone::bones::HumanHead);
 
 	for (auto& player : vars::players_list)
 	{
@@ -39,6 +43,7 @@ void update_drawing_list()
 		Player_Info playerInfo;
 
 		playerInfo.type = current->get_profile()->get_role();
+		playerInfo.distance = (int)Calc3D_Dist(LocalPosition, HeadPosition);
 
 		info.Head_Position = HeadScreenPosition;
 		info.Base_Position = BaseScreenPosition;
@@ -92,6 +97,8 @@ void cheat_entry()
 		exit(3);
 	}
 
+	std::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock::now();
+
 	while (true)
 	{
 		update_player_list();
@@ -106,7 +113,22 @@ void cheat_entry()
 				features::insta_aim();
 				features::no_visor();
 				features::thermal_vision();
-				update_drawing_list();
+
+				auto stop = std::chrono::high_resolution_clock::now();
+				if (std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() > 10)
+				{
+					start = std::chrono::high_resolution_clock::now();
+					features::do_cham();
+				}
+
+				if (settings::is_esp)
+					update_drawing_list();
+				else
+					vars::drawing_list.clear();
+			}
+			else
+			{
+				vars::drawing_list.clear();
 			}
 		}
 	}
@@ -128,9 +150,7 @@ void load_drv()
 int main()
 {
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)cheat_entry, 0, 0, 0);
-	//CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::render, 0, 0, 0); 
 	CreateThread(0, 0, (LPTHREAD_START_ROUTINE)draw::Initialize, 0, 0, 0);
-	//CreateThread(0, 0, (LPTHREAD_START_ROUTINE)menu::draw_overlay, 0, 0, 0);
 
 	ScreenCenterX = GetSystemMetrics(SM_CXSCREEN) / 2;
 	ScreenCenterY = GetSystemMetrics(SM_CYSCREEN) / 2;
