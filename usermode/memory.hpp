@@ -30,6 +30,15 @@ int d_operation = 0;
 class memory
 {
 public:
+	static std::string get_unicode_str(uintptr_t address, size_t size)
+	{
+		address = address + 0x14;
+		char16_t wcharTemp[64] = { '\0' };
+		memory::copy_memory(address, (uintptr_t)&wcharTemp, size * 2);
+		std::string u8_conv = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(wcharTemp);
+		return u8_conv;
+	}
+
 	static uint64_t GetComponentFromGameObject(uint64_t game_object, const char* component_name)
 	{
 		char Name[256];
@@ -43,6 +52,8 @@ public:
 			uint64_t NameChain = memory::read_chain(Fields, { 0x0, 0x0, 0x48 });
 
 			memory::copy_memory(NameChain, (uintptr_t)&Name, 256);
+
+			std::cout << Name << "\n";
 
 			if (strcmp(Name, component_name) == 0)
 			{

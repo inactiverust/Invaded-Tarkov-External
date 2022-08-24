@@ -17,6 +17,14 @@ bool do_once = true;
 
 void update_drawing_list()
 {
+	vars::extract_list = pointers::world->get_extract_list();
+
+	for (auto& extract : vars::extract_list)
+	{
+		ExfiltrationPoint* current = (ExfiltrationPoint*)extract;	
+		std::cout << current->get_name() << "\n";
+	}
+
 	std::vector<Draw_Info> temp_list;
 
 	Vector3 LocalPosition = pointers::local_player->get_position(Bone::bones::HumanHead);
@@ -29,9 +37,8 @@ void update_drawing_list()
 			continue;
 		
 		Vector3 HeadPosition = current->get_position(Bone::bones::HumanHead);
-		HeadPosition.y += 0.5;
+		HeadPosition.y += 0.25;
 		Vector3 BasePosition = (current->get_position(Bone::bones::HumanLFoot) + current->get_position(Bone::bones::HumanRFoot)) / 2;
-		BasePosition.y += 0.2;
 
 		Vector2 HeadScreenPosition;
 		Vector2 BaseScreenPosition;
@@ -44,6 +51,9 @@ void update_drawing_list()
 
 		playerInfo.type = current->get_profile()->get_role();
 		playerInfo.distance = (int)Calc3D_Dist(LocalPosition, HeadPosition);
+		
+		if (settings::esp::show_health)
+			playerInfo.health = current->get_health();
 
 		info.Head_Position = HeadScreenPosition;
 		info.Base_Position = BaseScreenPosition;
@@ -52,6 +62,26 @@ void update_drawing_list()
 		temp_list.push_back(info);
 	}
 	vars::drawing_list = std::move(temp_list);
+
+	if (settings::is_aimbot && vars::aim_player)
+	{
+		Vector3 AimPos = vars::aim_player->get_position(Bone::bones::HumanHead);
+		Vector3 PlayerPos = pointers::local_player->get_weapon()->get_fireport();
+
+		Vector2 AimSPos;
+		Vector2 PlayerSPos;
+
+		world_to_screen(AimPos, AimSPos);
+		world_to_screen(PlayerPos, PlayerSPos);
+
+		vars::target_info.FirePortPos = PlayerSPos;
+		vars::target_info.PlayerPos = AimSPos;
+	}
+	else
+	{
+		vars::target_info.FirePortPos = {};
+		vars::target_info.PlayerPos = {};
+	}
 }
 
 void update_player_list()
@@ -102,34 +132,38 @@ void cheat_entry()
 	while (true)
 	{
 		update_player_list();
-		if (pointers::local_player)
+		if (settings::is_in_raid)
 		{
-			if (settings::is_in_raid)
+			if (pointers::local_player)
 			{
-				camera.object = pointers::GOM->get_fps_camera();
-				features::infinite_stamina();
-				features::weapon_mods();
-				features::aimbot();
-				features::insta_aim();
-				features::no_visor();
-				features::thermal_vision();
-
-				auto stop = std::chrono::high_resolution_clock::now();
-				if (std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() > 10)
+				if (settings::is_in_raid)
 				{
-					start = std::chrono::high_resolution_clock::now();
-					features::do_cham();
+					camera.object = pointers::GOM->get_fps_camera();
+					features::infinite_stamina();
+					features::weapon_mods();
+					features::aimbot();
+					features::insta_aim();
+					features::no_visor();
+					features::thermal_vision();
+
+					auto stop = std::chrono::high_resolution_clock::now();
+					if (std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() > 10)
+					{
+						start = std::chrono::high_resolution_clock::now();
+						features::do_cham();
+					}
+
+					if (settings::is_esp)
+						update_drawing_list();
+					else
+						vars::drawing_list.clear();
 				}
 
-				if (settings::is_esp)
-					update_drawing_list();
-				else
-					vars::drawing_list.clear();
 			}
-			else
-			{
-				vars::drawing_list.clear();
-			}
+		}
+		else
+		{
+			vars::drawing_list.clear();
 		}
 	}
 }

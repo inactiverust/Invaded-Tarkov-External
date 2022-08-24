@@ -135,5 +135,8 @@
     <ClInclude Include="imgui_impl_dx11.h">
       <Filter>Source Files\imgui</Filter>
     </ClInclude>
+    <ClInclude Include="ExfiltrationPoint.hpp">
+      <Filter>Source Files\Classes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -23,6 +23,10 @@ namespace draw
     IDXGISwapChain* g_pSwapChain = NULL;
     ID3D11RenderTargetView* g_mainRenderTargetView = NULL;
 
+    void draw_box(ImVec2 p1, ImVec2 p2, ImDrawList* draw_list)
+    {
+        draw_list->AddRect(p1, p2, ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), 0.f, 0, 1.5);
+    }
 
     auto CleanupRenderTarget() -> void
     {
@@ -54,7 +58,7 @@ namespace draw
         sd.BufferDesc.Width = 0;
         sd.BufferDesc.Height = 0;
         sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        sd.BufferDesc.RefreshRate.Numerator = 60;
+        sd.BufferDesc.RefreshRate.Numerator = 300;
         sd.BufferDesc.RefreshRate.Denominator = 1;
         sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
         sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -214,6 +218,7 @@ namespace draw
                             if (settings::is_aimbot)
                             {
                                 ImGui::Text("Show FOV"); ImGui::SameLine(); ImGui::ToggleButton("#fovtoggle", &settings::aim::enable_fov_circle);
+                                ImGui::Text("Show Aim Line"); ImGui::SameLine(); ImGui::ToggleButton("#aimlinetoggle", &settings::esp::show_aim_line);
                                 ImGui::Text("Aim FOV");
                                 ImGui::SliderFloat("#fovslider", &settings::aim::aim_fov, 10, 500, "%.3f", 0);
                             }
@@ -226,6 +231,7 @@ namespace draw
                             {
                                 ImGui::Text("Show Role"); ImGui::SameLine(); ImGui::ToggleButton("#roletoggle", &settings::esp::show_role);
                                 ImGui::Text("Show Distance"); ImGui::SameLine(); ImGui::ToggleButton("#distancetoggle", &settings::esp::show_distance);
+                                ImGui::Text("Show Health"); ImGui::SameLine(); ImGui::ToggleButton("#healthtoggle", &settings::esp::show_health);
                             }
                             ImGui::TreePop();
                         }
@@ -237,27 +243,38 @@ namespace draw
 
             ImDrawList* draw_list = ImGui::GetForegroundDrawList();
 
-            for (auto& info : vars::drawing_list)
+            if (settings::is_esp)
             {
-                float height = info.Base_Position.y - info.Head_Position.y;
-                float width = height / 2.f;
-
-                float x = info.Base_Position.x - (width / 2.f);
-                float y = info.Head_Position.y;
-
-                draw_list->AddRect(ImVec2(x, y), ImVec2(x + width, y + height), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), 0.f, 0, 1.5);
-
-                if (settings::esp::show_role)
+                for (auto& info : vars::drawing_list)
                 {
-                    ImVec2 text_size = ImGui::CalcTextSize2(info.p_info.type.c_str(), 12.f);
-                    draw_list->AddText(ImVec2(info.Base_Position.x - text_size.x / 2, y + height + text_size.y / 2), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), info.p_info.type.c_str(), NULL, NULL, 12.f);
+                    float height = info.Base_Position.y - info.Head_Position.y;
+                    float width = height / 2.f;
+
+                    float x = info.Base_Position.x - (width / 2.f);
+                    float y = info.Head_Position.y;
+
+                    draw_box(ImVec2(x, y), ImVec2(x + width, y + height), draw_list);
+
+                    if (settings::is_aimbot && vars::aim_player && settings::esp::show_aim_line)
+                    {
+                        draw_list->AddLine(ImVec2(vars::target_info.FirePortPos.x, vars::target_info.FirePortPos.y), ImVec2(vars::target_info.PlayerPos.x, vars::target_info.PlayerPos.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), 1.f);
+                    }
+
+                    if (settings::esp::show_health)
+                    {
+                        draw_list->AddLine(ImVec2(x + width * 1.1, y + height), ImVec2(x + width * 1.1, y + (height - height * info.p_info.health)), IM_COL32(0, 255, 0, 255), 1.5);
+                    }
+                    if (settings::esp::show_role)
+                    {
+                        std::string name = info.p_info.type;
+                        if (settings::esp::show_distance)
+                        {
+                            name.append(" [" + std::to_string(info.p_info.distance) + "m]");
+                        }
+                        ImVec2 text_size = ImGui::CalcTextSize2(name.c_str(), 12.f);
+                        draw_list->AddText(ImVec2(info.Base_Position.x - text_size.x / 2, y + height + text_size.y / 2), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), name.c_str(), NULL, NULL, 12.f);
+                    }
                 }
-                if (settings::esp::show_distance)
-                {
-                    ImVec2 text_size = ImGui::CalcTextSize2((std::to_string(info.p_info.distance) + "m").c_str(), 12.f);
-                    draw_list->AddText(ImVec2(info.Base_Position.x - text_size.x / 2, y - text_size.y * 1.5), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), (std::to_string(info.p_info.distance) + "m").c_str(), NULL, NULL, 12.f);
-                }
-               
             }
 
             if (settings::aim::enable_fov_circle)

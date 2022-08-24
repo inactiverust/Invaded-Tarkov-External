@@ -13,6 +13,11 @@
 class Player
 {
 private:
+	struct HealthStruct
+	{
+		float current;
+		float max;
+	};
 public:
 	bool is_local_player()
 	{
@@ -23,6 +28,31 @@ public:
 	{
 		cloth_chams();
 		gear_chams();
+	}
+
+	float get_health()
+	{
+		uintptr_t health_controller = memory::read<uintptr_t>((uintptr_t)this + oHealthController);
+		uintptr_t health_body = memory::read<uintptr_t>(health_controller + oHealthBody);
+		uintptr_t body_controller = memory::read<uintptr_t>(health_body + 0x18);
+
+		float current_health = 0.f;
+		float health_max = 0.f;
+
+		for (int i = 0; i < 7; i++)
+		{
+			uintptr_t body_part = memory::read<uintptr_t>(body_controller + 0x30 + (i * 0x18));
+			uintptr_t health_container = memory::read<uintptr_t>(body_part + 0x10);
+			HealthStruct health = memory::read<HealthStruct>(health_container + 0x10);
+
+			current_health += health.current;
+			health_max += health.max;
+		}
+
+		if (health_max == 0)
+			return 0;
+
+		return (current_health / health_max);
 	}
 
 	Vector3 get_position(int bone_index)
@@ -168,38 +198,57 @@ private:
 
 			int lod_count = memory::read<int>(lod_array + 0x18);
 
-			if (lod_count > 10000)
+			if (lod_count > 128)
 				continue;
 
 			for (int j = 0; j < lod_count; j++)
 			{
-			
+
 				uintptr_t lod_entry = memory::read<uintptr_t>(lod_array + 0x20 + (j * 0x8));
-
-				if (j == 1)
-					lod_entry = memory::read<uintptr_t>(lod_entry + 0x20);
-
-				uintptr_t skinned_mesh_render = memory::read<uintptr_t>(lod_entry + 0x20);
-
-				if (!skinned_mesh_render)
+				if (!lod_entry)
 					continue;
 
-				uintptr_t material_dictionary = memory::read<uintptr_t>(skinned_mesh_render + 0x10);
-
-				if (!material_dictionary)
+				uintptr_t skinned_mesh_renderer = memory::read<uintptr_t>(lod_entry + 0x20);
+				if (!skinned_mesh_renderer)
 					continue;
 
-				uint32_t mat_count = memory::read<uint32_t>(material_dictionary + 0x158);
+				uintptr_t material_dict = memory::read<uintptr_t>(skinned_mesh_renderer + 0x10);
+				if (!material_dict)
+					continue;
 
-				if (mat_count > 0 && mat_count < 5)
+				uint32_t material_count = memory::read<uint32_t>(material_dict + 0x158);
+
+				if (material_count > 0 && material_count < 10)
 				{
-					uintptr_t material_dictionary_base = memory::read<uintptr_t>(material_dictionary + 0x148);
+					uintptr_t material_dirbase = memory::read<uintptr_t>(material_dict + 0x148);
 
-					if (!material_dictionary_base)
+					for (int k = 0; k < material_count; k++)
+					{
+						if (memory::read<uint64_t>(material_dirbase + (k * 0x4)) != 0)
+							memory::write<uint64_t>(material_dirbase + (k * 0x4), 0);
+					}
+				}
+				else
+				{
+					uintptr_t lod_entry = memory::read<uint64_t>(lod_array + 0x20 + (j * 0x8));
+					if (!lod_entry)
 						continue;
 
-					for (int l = 0; l < mat_count; l++)
-						memory::write<DWORD>(material_dictionary_base + (l * 0x4), 0);
+					uintptr_t skinned_mesh_renderer = memory::read<uintptr_t>(memory::read<uint64_t>(lod_entry + 0x20) + 0x20);
+					if (!skinned_mesh_renderer)
+						continue;
+
+					uintptr_t material_dict = memory::read<uintptr_t>(skinned_mesh_renderer + 0x10);
+					if (!material_dict)
+						continue;
+
+					uint32_t material_count = memory::read<uint32_t>(material_dict + 0x158);
+					uintptr_t material_dirbase = memory::read<uintptr_t>(material_dict + 0x148);
+					for (int k = 0; k < material_count; k++)
+					{
+						if (memory::read<uint64_t>(material_dirbase + (k * 0x4)) != 0)
+							memory::write<uint64_t>(material_dirbase + (k * 0x4), 0);
+					}
 				}
 			}
 		}

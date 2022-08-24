@@ -17,9 +17,9 @@ namespace features
 		if (settings::is_no_visor)
 		{
 			uint64_t visor_effect = memory::GetComponentFromGameObject(camera.object, "VisorEffect");
-			if (!visor_effect)
-				return;
-			memory::write<int>(visor_effect + 0xb8, 0);
+			//if (!visor_effect)
+				//return;
+			//memory::write<int>(visor_effect + 0xb8, 0);
 		}
 	}
 

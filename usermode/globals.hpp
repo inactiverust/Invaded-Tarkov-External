@@ -6,11 +6,13 @@
 #include "World.hpp"
 #include "Player.hpp"
 #include "Camera.hpp"
+#include "ExfiltrationPoint.hpp"
 
 struct Player_Info
 {
 	std::string type;
 	int distance;
+	float health;
 };
 
 struct Draw_Info
@@ -20,12 +22,20 @@ struct Draw_Info
 	Player_Info p_info;
 };
 
+struct Aim_Target_Info
+{
+	Vector2 FirePortPos;
+	Vector2 PlayerPos;
+};
+
 namespace vars
 {
 	uint32_t target_pid;
 	uint32_t draw_pid;
 	Player* aim_player;
+	Aim_Target_Info target_info;
 	std::vector<uintptr_t> players_list{};
+	std::vector<uintptr_t> extract_list{};
 	std::vector<Draw_Info> drawing_list;
 }
 
@@ -59,8 +69,10 @@ namespace settings
 	}
 	namespace esp
 	{
+		bool show_aim_line;
 		bool show_role;
 		bool show_distance;
+		bool show_health;
 	}
 }
 

@@ -167,6 +167,7 @@
     <ClInclude Include="Bone.hpp" />
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="drawing.hpp" />
+    <ClInclude Include="ExfiltrationPoint.hpp" />
     <ClInclude Include="features.hpp" />
     <ClInclude Include="GameObjectManager.hpp" />
     <ClInclude Include="globals.hpp" />

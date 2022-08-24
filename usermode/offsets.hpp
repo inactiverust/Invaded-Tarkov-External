@@ -28,3 +28,6 @@
 #define oSide 0x68
 
 #define oAngle 0x22c
+
+#define oHealthController 0x528
+#define oHealthBody 0x50
