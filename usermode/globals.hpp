@@ -7,6 +7,7 @@
 #include "Player.hpp"
 #include "Camera.hpp"
 #include "ExfiltrationPoint.hpp"
+#include "Loot.hpp"
 
 struct Player_Info
 {
@@ -31,11 +32,9 @@ struct Aim_Target_Info
 namespace vars
 {
 	uint32_t target_pid;
-	uint32_t draw_pid;
 	Player* aim_player;
 	Aim_Target_Info target_info;
 	std::vector<uintptr_t> players_list{};
-	std::vector<uintptr_t> extract_list{};
 	std::vector<Draw_Info> drawing_list;
 }
 
@@ -46,13 +45,10 @@ namespace pointers
 	GameObjectManager* GOM;
 	World* world;
 	Camera* camera;
-	Player* local_player;
 }
 
 namespace settings 
 {
-	bool connected;
-	bool is_in_raid;
 	bool is_no_visor;
 	bool is_thermal_vision;
 	bool is_chams;
@@ -62,17 +58,21 @@ namespace settings
 	bool is_no_recoil;
 	bool is_no_spread;
 	bool is_instant_aim;
+
 	namespace aim
 	{
 		float aim_fov = 300.f;
 		bool enable_fov_circle;
 	}
+
 	namespace esp
 	{
 		bool show_aim_line;
 		bool show_role;
 		bool show_distance;
 		bool show_health;
+		bool show_extracts;
+		bool is_loot_esp;
 	}
 }
 

@@ -138,5 +138,8 @@
     <ClInclude Include="ExfiltrationPoint.hpp">
       <Filter>Source Files\Classes</Filter>
     </ClInclude>
+    <ClInclude Include="Loot.hpp">
+      <Filter>Source Files\Classes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

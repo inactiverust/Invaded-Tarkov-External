@@ -58,4 +58,28 @@ public:
 		return_list = { entities_buffer.get(), entities_buffer.get() + (uintptr_t)info.size };
 		return return_list;
 	}
+
+	std::vector<uintptr_t> get_loot_list()
+	{
+		std::vector<uintptr_t> return_list;
+
+		uintptr_t list_ptr = memory::read<uintptr_t>(reinterpret_cast<uintptr_t>(this) + 0x78);
+		list_ptr = memory::read<uintptr_t>(list_ptr + 0x10);
+
+		if (!list_ptr)
+			return return_list;
+
+		int sz = memory::read<uint32_t>(list_ptr + 0x40);
+
+		list_ptr = memory::read<uintptr_t>(list_ptr + 0x18);
+
+		if (sz > 0xFFFFFF)
+			return return_list;
+		
+		for (int i = 0; i < sz; i++)
+		{
+			return_list.push_back(memory::read<uintptr_t>(list_ptr + 0x30 + (i * 0x18)));
+		}
+		return return_list;
+	}
 };

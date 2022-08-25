@@ -194,47 +194,45 @@ namespace draw
                     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.075, 0.078, 0.094, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.075, 0.078, 0.094, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.075, 0.078, 0.094, 1.f));;
-                    ImGui::Text("In Raid"); ImGui::SameLine(); ImGui::ToggleButton("#raidtoggle", &settings::is_in_raid);
-                    if (settings::is_in_raid)
+
+                    if (ImGui::TreeNode("Exploits"))
                     {
-                        if (ImGui::TreeNode("Exploits"))
+                        ImGui::Text("Infinite Stamina"); ImGui::SameLine(); ImGui::ToggleButton("#staminatoggle", &settings::is_infinite_stamina);
+                        ImGui::Text("No Visor"); ImGui::SameLine(); ImGui::ToggleButton("#visortoggle", &settings::is_no_visor);
+                        ImGui::Text("Thermal Vision"); ImGui::SameLine(); ImGui::ToggleButton("#thermaltoggle", &settings::is_thermal_vision);
+                        ImGui::Text("Chams"); ImGui::SameLine(); ImGui::ToggleButton("#chamtoggle", &settings::is_chams);
+                        ImGui::TreePop();
+                    }
+                    if (ImGui::TreeNode("Weapon Mods"))
+                    {
+                        ImGui::Text("No Recoil"); ImGui::SameLine(); ImGui::ToggleButton("#recoiltoggle", &settings::is_no_recoil);
+                        ImGui::Text("No Spread"); ImGui::SameLine(); ImGui::ToggleButton("#spreadtoggle", &settings::is_no_spread);
+                        ImGui::Text("Instant Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_instant_aim);
+                        ImGui::TreePop();
+                    }
+                    if (ImGui::TreeNode("Aim Settings"))
+                    {
+                        ImGui::Text("Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_aimbot);
+                        if (settings::is_aimbot)
                         {
-                            ImGui::Text("Infinite Stamina"); ImGui::SameLine(); ImGui::ToggleButton("#staminatoggle", &settings::is_infinite_stamina);
-                            ImGui::Text("No Visor"); ImGui::SameLine(); ImGui::ToggleButton("#visortoggle", &settings::is_no_visor);
-                            ImGui::Text("Thermal Vision"); ImGui::SameLine(); ImGui::ToggleButton("#thermaltoggle", &settings::is_thermal_vision);
-                            ImGui::Text("Chams"); ImGui::SameLine(); ImGui::ToggleButton("#chamtoggle", &settings::is_chams);
-                            ImGui::TreePop();
+                            ImGui::Text("Show FOV"); ImGui::SameLine(); ImGui::ToggleButton("#fovtoggle", &settings::aim::enable_fov_circle);
+                            ImGui::Text("Show Aim Line"); ImGui::SameLine(); ImGui::ToggleButton("#aimlinetoggle", &settings::esp::show_aim_line);
+                            ImGui::Text("Aim FOV");
+                            ImGui::SliderFloat("#fovslider", &settings::aim::aim_fov, 10, 500, "%.3f", 0);
                         }
-                        if (ImGui::TreeNode("Weapon Mods"))
+                        ImGui::TreePop();
+                    }
+                    if (ImGui::TreeNode("ESP Settings"))
+                    {
+                        ImGui::Text("ESP"); ImGui::SameLine(); ImGui::ToggleButton("#esptoggle", &settings::is_esp);
+                        if (settings::is_esp)
                         {
-                            ImGui::Text("No Recoil"); ImGui::SameLine(); ImGui::ToggleButton("#recoiltoggle", &settings::is_no_recoil);
-                            ImGui::Text("No Spread"); ImGui::SameLine(); ImGui::ToggleButton("#spreadtoggle", &settings::is_no_spread);
-                            ImGui::Text("Instant Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_instant_aim);
-                            ImGui::TreePop();
+                            ImGui::Text("Role"); ImGui::SameLine(); ImGui::ToggleButton("#roletoggle", &settings::esp::show_role);
+                            ImGui::Text("Distance"); ImGui::SameLine(); ImGui::ToggleButton("#distancetoggle", &settings::esp::show_distance);
+                            ImGui::Text("Health Bar"); ImGui::SameLine(); ImGui::ToggleButton("#healthtoggle", &settings::esp::show_health);
                         }
-                        if (ImGui::TreeNode("Aim Settings"))
-                        {
-                            ImGui::Text("Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_aimbot);
-                            if (settings::is_aimbot)
-                            {
-                                ImGui::Text("Show FOV"); ImGui::SameLine(); ImGui::ToggleButton("#fovtoggle", &settings::aim::enable_fov_circle);
-                                ImGui::Text("Show Aim Line"); ImGui::SameLine(); ImGui::ToggleButton("#aimlinetoggle", &settings::esp::show_aim_line);
-                                ImGui::Text("Aim FOV");
-                                ImGui::SliderFloat("#fovslider", &settings::aim::aim_fov, 10, 500, "%.3f", 0);
-                            }
-                            ImGui::TreePop();
-                        }
-                        if (ImGui::TreeNode("ESP Settings"))
-                        {
-                            ImGui::Text("ESP"); ImGui::SameLine(); ImGui::ToggleButton("#esptoggle", &settings::is_esp);
-                            if (settings::is_esp)
-                            {
-                                ImGui::Text("Show Role"); ImGui::SameLine(); ImGui::ToggleButton("#roletoggle", &settings::esp::show_role);
-                                ImGui::Text("Show Distance"); ImGui::SameLine(); ImGui::ToggleButton("#distancetoggle", &settings::esp::show_distance);
-                                ImGui::Text("Show Health"); ImGui::SameLine(); ImGui::ToggleButton("#healthtoggle", &settings::esp::show_health);
-                            }
-                            ImGui::TreePop();
-                        }
+                        ImGui::Text("Extracts"); ImGui::SameLine(); ImGui::ToggleButton("#extracttoggle", &settings::esp::show_extracts);
+                        ImGui::TreePop();
                     }
                 }
                 ImGui::PopStyleColor(12);
@@ -243,8 +241,20 @@ namespace draw
 
             ImDrawList* draw_list = ImGui::GetForegroundDrawList();
 
+            for (auto& loot : loot_list.world_loot_list)
+            {
+                draw_list->AddText(ImVec2(loot.location.x, loot.location.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), loot.short_name.c_str(), NULL, NULL, 12.f);
+            }
             if (settings::is_esp)
             {
+                if (settings::esp::show_extracts)
+                {
+                    for (auto& temp : exfil_list.extract_info_list)
+                    {
+                        draw_list->AddText(ImVec2(temp.screen_pos.x, temp.screen_pos.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), temp.name.c_str(), NULL, NULL, 12.f);
+                    }
+                }
+
                 for (auto& info : vars::drawing_list)
                 {
                     float height = info.Base_Position.y - info.Head_Position.y;

@@ -15,75 +15,6 @@ bool do_once = true;
 #define check_auth false
 #define using_signed false
 
-void update_drawing_list()
-{
-	vars::extract_list = pointers::world->get_extract_list();
-
-	for (auto& extract : vars::extract_list)
-	{
-		ExfiltrationPoint* current = (ExfiltrationPoint*)extract;	
-		std::cout << current->get_name() << "\n";
-	}
-
-	std::vector<Draw_Info> temp_list;
-
-	Vector3 LocalPosition = pointers::local_player->get_position(Bone::bones::HumanHead);
-
-	for (auto& player : vars::players_list)
-	{
-		Player* current = (Player*)player;
-
-		if (current == pointers::local_player)
-			continue;
-		
-		Vector3 HeadPosition = current->get_position(Bone::bones::HumanHead);
-		HeadPosition.y += 0.25;
-		Vector3 BasePosition = (current->get_position(Bone::bones::HumanLFoot) + current->get_position(Bone::bones::HumanRFoot)) / 2;
-
-		Vector2 HeadScreenPosition;
-		Vector2 BaseScreenPosition;
-
-		if (!world_to_screen(HeadPosition, HeadScreenPosition) || !world_to_screen(BasePosition, BaseScreenPosition))
-			continue;
-
-		Draw_Info info;
-		Player_Info playerInfo;
-
-		playerInfo.type = current->get_profile()->get_role();
-		playerInfo.distance = (int)Calc3D_Dist(LocalPosition, HeadPosition);
-		
-		if (settings::esp::show_health)
-			playerInfo.health = current->get_health();
-
-		info.Head_Position = HeadScreenPosition;
-		info.Base_Position = BaseScreenPosition;
-		info.p_info = playerInfo;
-
-		temp_list.push_back(info);
-	}
-	vars::drawing_list = std::move(temp_list);
-
-	if (settings::is_aimbot && vars::aim_player)
-	{
-		Vector3 AimPos = vars::aim_player->get_position(Bone::bones::HumanHead);
-		Vector3 PlayerPos = pointers::local_player->get_weapon()->get_fireport();
-
-		Vector2 AimSPos;
-		Vector2 PlayerSPos;
-
-		world_to_screen(AimPos, AimSPos);
-		world_to_screen(PlayerPos, PlayerSPos);
-
-		vars::target_info.FirePortPos = PlayerSPos;
-		vars::target_info.PlayerPos = AimSPos;
-	}
-	else
-	{
-		vars::target_info.FirePortPos = {};
-		vars::target_info.PlayerPos = {};
-	}
-}
-
 void update_player_list()
 {
 	Player* return_player = NULL;
@@ -105,7 +36,7 @@ void update_player_list()
 			}
 		}
 	}
-	pointers::local_player = return_player;
+	local_player.player_class = return_player;
 }
 
 void cheat_entry()
@@ -132,38 +63,36 @@ void cheat_entry()
 	while (true)
 	{
 		update_player_list();
-		if (settings::is_in_raid)
+		exfil_list.exfil_pointer_list = pointers::world->get_extract_list();
+		loot_list.loot_pointer_list = pointers::world->get_loot_list();
+		if (exfil_list.exfil_pointer_list.size() > 0 && local_player.player_class)
 		{
-			if (pointers::local_player)
+			camera.object = pointers::GOM->get_fps_camera();
+			local_player.setup();
+
+			features::infinite_stamina();
+			features::weapon_mods();
+			features::aimbot();
+			features::insta_aim();
+			//features::loot_esp();
+
+			if (settings::is_esp)
 			{
-				if (settings::is_in_raid)
-				{
-					camera.object = pointers::GOM->get_fps_camera();
-					features::infinite_stamina();
-					features::weapon_mods();
-					features::aimbot();
-					features::insta_aim();
-					features::no_visor();
-					features::thermal_vision();
+				features::esp();
+				features::extract_esp();
+			}
 
-					auto stop = std::chrono::high_resolution_clock::now();
-					if (std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() > 10)
-					{
-						start = std::chrono::high_resolution_clock::now();
-						features::do_cham();
-					}
-
-					if (settings::is_esp)
-						update_drawing_list();
-					else
-						vars::drawing_list.clear();
-				}
-
+			auto stop = std::chrono::high_resolution_clock::now();
+			if (std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() > 10)
+			{
+				start = std::chrono::high_resolution_clock::now();
+				features::do_cham();
 			}
 		}
 		else
 		{
 			vars::drawing_list.clear();
+			exfil_list.extract_info_list.clear();
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace Aim
 		{
 			Player* current = (Player*)player;
 
-			if (current == pointers::local_player)
+			if (current == local_player.player_class)
 				continue;
 			
 			Vector2 ScreenPos = {};
@@ -41,7 +41,7 @@ namespace Aim
 			return;
 		
 		Vector3 AimPos = vars::aim_player->get_position(Bone::bones::HumanHead);
-		Vector3 PlayerPos = pointers::local_player->get_weapon()->get_fireport();
+		Vector3 PlayerPos = local_player.fireport_position;
 
 		Vector2 Angles = calculate_angle(PlayerPos, AimPos);
 
@@ -50,6 +50,6 @@ namespace Aim
 			return;
 		}
 
-		pointers::local_player->get_movement()->set_va(Angles);
+		local_player.player_class->get_movement()->set_va(Angles);
 	}
 }

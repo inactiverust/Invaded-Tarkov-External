@@ -254,3 +254,23 @@ private:
 		}
 	}
 };
+
+class LPlayer
+{
+public:
+	void setup()
+	{
+		weapon_class = player_class->get_weapon();
+		physical_class = player_class->get_physical();
+
+		position = player_class->get_position(Bone::bones::HumanHead);
+		fireport_position = weapon_class->get_fireport();
+		
+	}
+
+	Player* player_class;
+	ProceduralWeaponAnimation* weapon_class;
+	Physical* physical_class;
+	Vector3 position;
+	Vector3 fireport_position;
+} local_player;
