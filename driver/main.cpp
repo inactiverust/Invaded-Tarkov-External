@@ -8,7 +8,7 @@
 
 #include "utilities.hpp"
 
-#define release false;
+#define release true;
 
 _CEPROCESS* find_process_by_name(const char* proc_name)
 {

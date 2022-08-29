@@ -12,7 +12,10 @@
 
 bool b_Shutdown = false;
 HWND h_Game;
+bool is_menu = false;
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 namespace draw
 {
     HWND h_hWnd;
@@ -23,9 +26,36 @@ namespace draw
     IDXGISwapChain* g_pSwapChain = NULL;
     ID3D11RenderTargetView* g_mainRenderTargetView = NULL;
 
+    static const char* options[]{ "Head", "Chest", "Leg" };
+    int selected;
+
+    void UpdateWND()
+    {
+        while (true)
+        {
+            if (GetAsyncKeyState(VK_INSERT) != 0)
+                is_menu = !is_menu;
+
+            long style = GetWindowLongPtr(h_hWnd, GWL_EXSTYLE);
+
+
+            if (is_menu)
+            {
+                style &= ~WS_EX_LAYERED;
+                SetWindowLongPtr(h_hWnd, GWL_EXSTYLE, style);
+            }
+            else
+            {
+                style |= WS_EX_LAYERED;
+                SetWindowLongPtr(h_hWnd, GWL_EXSTYLE, style);
+            }
+            Sleep(100);
+        }
+    }
+
     void draw_box(ImVec2 p1, ImVec2 p2, ImDrawList* draw_list)
     {
-        draw_list->AddRect(p1, p2, ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), 0.f, 0, 1.5);
+        draw_list->AddRect(p1, p2, ImGui::ColorConvertFloat4ToU32(ImVec4(settings::esp::box_color.x, settings::esp::box_color.y, settings::esp::box_color.z, 1)), 0.f, 0, 1.5);
     }
 
     auto CleanupRenderTarget() -> void
@@ -113,7 +143,6 @@ namespace draw
      */
     bool Initialize()
     {
-        bool is_menu = false;
         WINDOWPLACEMENT g_wpPrev;
         DWORD dwStyle = GetWindowLong(h_Game, GWL_STYLE);
         MONITORINFO mi = { sizeof(mi) };
@@ -133,7 +162,7 @@ namespace draw
         wc = { sizeof(WNDCLASSEX), ACS_TRANSPARENT, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, ("Windows Task Assistant"), NULL };
         RegisterClassEx(&wc);
         h_hWnd = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_LAYERED, wc.lpszClassName, (""), WS_POPUP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), NULL, NULL, wc.hInstance, NULL);
-
+        CreateThread(0, 0, (LPTHREAD_START_ROUTINE)UpdateWND, 0, 0, 0);
         MARGINS margins = { -1 };
         DwmExtendFrameIntoClientArea(h_hWnd, &margins);
 
@@ -194,45 +223,98 @@ namespace draw
                     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.075, 0.078, 0.094, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.075, 0.078, 0.094, 1.f));
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.075, 0.078, 0.094, 1.f));;
+                    ImGui::Text("Is In Raid"); ImGui::SameLine(); ImGui::ToggleButton("#raidtoggle", &settings::is_in_raid);
+                    if (settings::is_in_raid)
+                    {
+                        if (ImGui::TreeNode("Exploits"))
+                        {
+                            ImGui::Text("Infinite Stamina"); ImGui::SameLine(); ImGui::ToggleButton("#staminatoggle", &settings::is_infinite_stamina);
+                            ImGui::Text("Chams"); ImGui::SameLine(); ImGui::ToggleButton("#chamtoggle", &settings::is_chams);
+                            ImGui::Text("Loot Through Walls"); ImGui::SameLine(); ImGui::ToggleButton("#loottoggle", &settings::is_loot_thru_walls);
+                            ImGui::Text("No Visor"); ImGui::SameLine(); ImGui::ToggleButton("#visortoggle", &settings::is_no_visor);
+                            ImGui::Text("Thermal Vision"); ImGui::SameLine(); ImGui::ToggleButton("#thermaltoggle", &settings::is_thermal_vision);
 
-                    if (ImGui::TreeNode("Exploits"))
-                    {
-                        ImGui::Text("Infinite Stamina"); ImGui::SameLine(); ImGui::ToggleButton("#staminatoggle", &settings::is_infinite_stamina);
-                        ImGui::Text("No Visor"); ImGui::SameLine(); ImGui::ToggleButton("#visortoggle", &settings::is_no_visor);
-                        ImGui::Text("Thermal Vision"); ImGui::SameLine(); ImGui::ToggleButton("#thermaltoggle", &settings::is_thermal_vision);
-                        ImGui::Text("Chams"); ImGui::SameLine(); ImGui::ToggleButton("#chamtoggle", &settings::is_chams);
-                        ImGui::TreePop();
-                    }
-                    if (ImGui::TreeNode("Weapon Mods"))
-                    {
-                        ImGui::Text("No Recoil"); ImGui::SameLine(); ImGui::ToggleButton("#recoiltoggle", &settings::is_no_recoil);
-                        ImGui::Text("No Spread"); ImGui::SameLine(); ImGui::ToggleButton("#spreadtoggle", &settings::is_no_spread);
-                        ImGui::Text("Instant Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_instant_aim);
-                        ImGui::TreePop();
-                    }
-                    if (ImGui::TreeNode("Aim Settings"))
-                    {
-                        ImGui::Text("Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_aimbot);
-                        if (settings::is_aimbot)
-                        {
-                            ImGui::Text("Show FOV"); ImGui::SameLine(); ImGui::ToggleButton("#fovtoggle", &settings::aim::enable_fov_circle);
-                            ImGui::Text("Show Aim Line"); ImGui::SameLine(); ImGui::ToggleButton("#aimlinetoggle", &settings::esp::show_aim_line);
-                            ImGui::Text("Aim FOV");
-                            ImGui::SliderFloat("#fovslider", &settings::aim::aim_fov, 10, 500, "%.3f", 0);
+                            ImGui::TreePop();
                         }
-                        ImGui::TreePop();
-                    }
-                    if (ImGui::TreeNode("ESP Settings"))
-                    {
-                        ImGui::Text("ESP"); ImGui::SameLine(); ImGui::ToggleButton("#esptoggle", &settings::is_esp);
-                        if (settings::is_esp)
+                        if (ImGui::TreeNode("Weapon Mods"))
                         {
-                            ImGui::Text("Role"); ImGui::SameLine(); ImGui::ToggleButton("#roletoggle", &settings::esp::show_role);
-                            ImGui::Text("Distance"); ImGui::SameLine(); ImGui::ToggleButton("#distancetoggle", &settings::esp::show_distance);
-                            ImGui::Text("Health Bar"); ImGui::SameLine(); ImGui::ToggleButton("#healthtoggle", &settings::esp::show_health);
+                            ImGui::Text("No Recoil"); ImGui::SameLine(); ImGui::ToggleButton("#recoiltoggle", &settings::is_no_recoil);
+                            ImGui::Text("No Spread"); ImGui::SameLine(); ImGui::ToggleButton("#spreadtoggle", &settings::is_no_spread);
+                            ImGui::Text("Instant Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_instant_aim);
+                            ImGui::TreePop();
                         }
-                        ImGui::Text("Extracts"); ImGui::SameLine(); ImGui::ToggleButton("#extracttoggle", &settings::esp::show_extracts);
-                        ImGui::TreePop();
+                        if (ImGui::TreeNode("Aim Settings"))
+                        {
+                            ImGui::Text("Aim"); ImGui::SameLine(); ImGui::ToggleButton("#aimtoggle", &settings::is_aimbot);
+                            if (settings::is_aimbot)
+                            {
+                                ImGui::Text("Show FOV"); ImGui::SameLine(); ImGui::ToggleButton("#fovtoggle", &settings::aim::enable_fov_circle);
+                                ImGui::Text("Show Aim Line"); ImGui::SameLine(); ImGui::ToggleButton("#aimlinetoggle", &settings::esp::show_aim_line);
+                                ImGui::Text("Aim FOV");
+                                ImGui::SliderFloat("#fovslider", &settings::aim::aim_fov, 10, 500, "%.3f", 0);
+                                ImGui::Text("Max Aim Distance");
+                                ImGui::SliderFloat("#adistanceslider", &settings::aim::max_distance, 10, 400, "%.3f", 0);
+                                ImGui::Text("Aim Bone"); ImGui::SameLine(); ImGui::Combo(" ", &selected, options, IM_ARRAYSIZE(options));
+                                
+                                switch (selected)
+                                {
+                                case 0:
+                                    settings::aim::aim_bone = Bone::bones::HumanHead;
+                                    break;
+                                case 1:
+                                    settings::aim::aim_bone = Bone::bones::HumanSpine2;
+                                    break;
+                                case 2:
+                                    settings::aim::aim_bone = Bone::bones::HumanLCalf;
+                                    break;
+                                }
+
+                            }
+                            ImGui::TreePop();
+                        }
+                        if (ImGui::TreeNode("ESP Settings"))
+                        {
+                            if (ImGui::TreeNode("Player ESP"))
+                            {
+                                ImGui::Text("ESP"); ImGui::SameLine(); ImGui::ToggleButton("#esptoggle", &settings::is_esp);
+                                if (settings::is_esp)
+                                {
+                                    ImGui::Text("Role"); ImGui::SameLine(); ImGui::ToggleButton("#roletoggle", &settings::esp::show_role);
+                                    ImGui::Text("Distance"); ImGui::SameLine(); ImGui::ToggleButton("#distancetoggle", &settings::esp::show_distance);
+                                    ImGui::Text("Health Bar"); ImGui::SameLine(); ImGui::ToggleButton("#healthtoggle", &settings::esp::show_health);
+                                    ImGui::Text("Max Player Distance");
+                                    ImGui::SliderFloat("#pdistanceslider", &settings::esp::max_distance, 10, 400, "%.3f", 0);
+                                }
+                                ImGui::TreePop();
+                            }
+                            if (ImGui::TreeNode("Item ESP"))
+                            {
+                                ImGui::Text("Loot ESP"); ImGui::SameLine(); ImGui::ToggleButton("#loottoggle", &settings::esp::is_loot_esp);
+                                if (settings::esp::is_loot_esp)
+                                {
+                                    ImGui::Text("Max Loot Distance");
+                                    ImGui::SliderFloat("#ldistanceslider", &settings::esp::loot_esp::max_distance, 10, 400, "%.3f", 0);
+                                    ImGui::Text("Min Loot Price");
+                                    ImGui::SliderFloat("#priceslider", &settings::esp::loot_esp::min_price, 1000, 500000, "%.3f", 0);
+                                }
+                                ImGui::TreePop();
+                            }
+                            ImGui::Text("Extracts"); ImGui::SameLine(); ImGui::ToggleButton("#extracttoggle", &settings::esp::show_extracts);
+                            ImGui::TreePop();
+                        }
+                        if (ImGui::TreeNode("Color Settings"))
+                        {
+                            float col1[3] = { settings::esp::box_color.x, settings::esp::box_color.y, settings::esp::box_color.z };
+                            ImGui::ColorEdit3("Box Color", col1, 0);
+                            settings::esp::box_color.x = col1[0]; settings::esp::box_color.y = col1[1]; settings::esp::box_color.z = col1[2];
+                            float col2[3] = { settings::esp::loot_esp::loot_color.x, settings::esp::loot_esp::loot_color.y, settings::esp::loot_esp::loot_color.z };
+                            ImGui::ColorEdit3("Loot ESP Color", col2, 0);
+                            settings::esp::loot_esp::loot_color.x = col2[0]; settings::esp::loot_esp::loot_color.y = col2[1]; settings::esp::loot_esp::loot_color.z = col2[2];
+                            float col3[3] = { settings::aim::aim_circle_color.x, settings::aim::aim_circle_color.y, settings::aim::aim_circle_color.z };
+                            ImGui::ColorEdit3("FOV Color", col3, 0);
+                            settings::aim::aim_circle_color.x = col3[0]; settings::aim::aim_circle_color.y = col3[1]; settings::aim::aim_circle_color.z = col3[2];
+                            ImGui::TreePop();
+                        }
                     }
                 }
                 ImGui::PopStyleColor(12);
@@ -241,20 +323,27 @@ namespace draw
 
             ImDrawList* draw_list = ImGui::GetForegroundDrawList();
 
-            for (auto& loot : loot_list.world_loot_list)
+            if(settings::esp::is_loot_esp)
             {
-                draw_list->AddText(ImVec2(loot.location.x, loot.location.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), loot.short_name.c_str(), NULL, NULL, 12.f);
+                for (auto& loot : loot_list.world_loot_list)
+                {
+                    std::string line1 = loot.short_name + " [" + std::to_string((int)loot.distance) + "]";
+                    ImVec2 text_size = ImGui::CalcTextSize2(line1.c_str(), 12.f);
+                    draw_list->AddText(ImVec2(loot.location.x - text_size.x / 2, loot.location.y + text_size.y / 2), ImGui::ColorConvertFloat4ToU32(ImVec4(settings::esp::loot_esp::loot_color.x, settings::esp::loot_esp::loot_color.y, settings::esp::loot_esp::loot_color.z, 1)), line1.c_str(), NULL, NULL, 12.f);
+                    if(loot.short_name != "Corpse")
+                        draw_list->AddText(ImVec2(loot.location.x - text_size.x / 2, loot.location.y + (text_size.y / 2) + 10), ImGui::ColorConvertFloat4ToU32(ImVec4(settings::esp::loot_esp::loot_color.x, settings::esp::loot_esp::loot_color.y, settings::esp::loot_esp::loot_color.z, 1)), std::to_string(loot.price).c_str(), NULL, NULL, 12.f);
+   
+                }
+            }
+            if (settings::esp::show_extracts)
+            {
+                for (auto& temp : exfil_list.extract_info_list)
+                {
+                    draw_list->AddText(ImVec2(temp.screen_pos.x, temp.screen_pos.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), (temp.name + "[" + std::to_string((int)temp.distance) + "m]").c_str(), NULL, NULL, 12.f);
+                }
             }
             if (settings::is_esp)
             {
-                if (settings::esp::show_extracts)
-                {
-                    for (auto& temp : exfil_list.extract_info_list)
-                    {
-                        draw_list->AddText(ImVec2(temp.screen_pos.x, temp.screen_pos.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), temp.name.c_str(), NULL, NULL, 12.f);
-                    }
-                }
-
                 for (auto& info : vars::drawing_list)
                 {
                     float height = info.Base_Position.y - info.Head_Position.y;
@@ -267,7 +356,7 @@ namespace draw
 
                     if (settings::is_aimbot && vars::aim_player && settings::esp::show_aim_line)
                     {
-                        draw_list->AddLine(ImVec2(vars::target_info.FirePortPos.x, vars::target_info.FirePortPos.y), ImVec2(vars::target_info.PlayerPos.x, vars::target_info.PlayerPos.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), 1.f);
+                        draw_list->AddLine(ImVec2(ScreenCenterX, ScreenCenterY), ImVec2(vars::target_info.PlayerPos.x, vars::target_info.PlayerPos.y), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), 1.f);
                     }
 
                     if (settings::esp::show_health)
@@ -284,11 +373,17 @@ namespace draw
                         ImVec2 text_size = ImGui::CalcTextSize2(name.c_str(), 12.f);
                         draw_list->AddText(ImVec2(info.Base_Position.x - text_size.x / 2, y + height + text_size.y / 2), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), name.c_str(), NULL, NULL, 12.f);
                     }
+                    else if (settings::esp::show_distance)
+                    {
+                        std::string distance = "[" + std::to_string(info.p_info.distance) + "]";
+                        ImVec2 text_size = ImGui::CalcTextSize2(distance.c_str(), 12.f);
+                        draw_list->AddText(ImVec2(info.Base_Position.x - text_size.x / 2, y + height + text_size.y / 2), ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), distance.c_str(), NULL, NULL, 12.f);
+                    }
                 }
             }
 
             if (settings::aim::enable_fov_circle)
-                draw_list->AddCircle(ImVec2(ScreenCenterX, ScreenCenterY), settings::aim::aim_fov, ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)), 0, 1.f);
+                draw_list->AddCircle(ImVec2(ScreenCenterX, ScreenCenterY), settings::aim::aim_fov, ImGui::ColorConvertFloat4ToU32(ImVec4(settings::aim::aim_circle_color.x, settings::aim::aim_circle_color.y, settings::aim::aim_circle_color.z, 1)), 0, 1.f);
 
             ImGui::EndFrame();
 
@@ -301,24 +396,6 @@ namespace draw
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
             g_pSwapChain->Present(0, 0);
-
-            if (GetAsyncKeyState(VK_INSERT) != 0)
-                is_menu = !is_menu;
-
-            long style = GetWindowLongPtr(h_hWnd, GWL_EXSTYLE);
-
-
-            if (is_menu)
-            {
-                style &= ~WS_EX_LAYERED;
-                SetWindowLongPtr(h_hWnd, GWL_EXSTYLE, style);
-            }
-            else
-            {
-                style |= WS_EX_LAYERED;
-                SetWindowLongPtr(h_hWnd, GWL_EXSTYLE, style);
-            }
-
         }
         Shutdown();
         return 0;

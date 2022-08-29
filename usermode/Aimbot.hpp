@@ -24,11 +24,12 @@ namespace Aim
 			if (!world_to_screen(PlayerPos, ScreenPos))
 				continue;
 
-			float distance = Calc2D_Dist(Vector2(ScreenCenterX, ScreenCenterY), ScreenPos);
+			float fov = Calc2D_Dist(Vector2(ScreenCenterX, ScreenCenterY), ScreenPos);
+			float distance = Calc3D_Dist(PlayerPos, local_player.position);
 
-			if (distance < min_fov && distance < settings::aim::aim_fov)
+			if (fov < min_fov && fov < settings::aim::aim_fov && distance < settings::aim::max_distance)
 			{
-				min_fov = distance;
+				min_fov = fov;
 				return_player = current;
 			}
 		}
@@ -40,7 +41,7 @@ namespace Aim
 		if (!vars::aim_player)
 			return;
 		
-		Vector3 AimPos = vars::aim_player->get_position(Bone::bones::HumanHead);
+		Vector3 AimPos = vars::aim_player->get_position(settings::aim::aim_bone);
 		Vector3 PlayerPos = local_player.fireport_position;
 
 		Vector2 Angles = calculate_angle(PlayerPos, AimPos);

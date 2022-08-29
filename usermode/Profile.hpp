@@ -9,7 +9,13 @@ private:
 public:
 	std::string get_name()
 	{
-		
+        uintptr_t info = memory::read<uintptr_t>((uintptr_t)this + oInfo);
+
+        uintptr_t name_ptr = memory::read<uintptr_t>(info + 0x10);
+
+        int name_sz = memory::read<int>(name_ptr + 0x10);
+
+        return memory::get_unicode_str(name_ptr, name_sz);
 	}
 
 	std::string get_role()
@@ -24,8 +30,8 @@ public:
 
         uint32_t role = memory::read<uint32_t>(settings + 0x10);
 
-		if (registration_date > 0 && (side == 1 || side == 2))
-			return _("Player");
+        if (registration_date > 0 && (side == 1 || side == 2))
+            return this->get_name();
 		else if (registration_date > 0 && side == 4)
 			return _("Player Scav");
 		else

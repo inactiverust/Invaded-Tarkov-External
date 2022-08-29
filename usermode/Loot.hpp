@@ -1,6 +1,17 @@
+#include <tuple>
+
 #include "common.hpp"
 #include "math.hpp"
 #include "memory.hpp"
+
+struct ItemInfo
+{
+	std::string id;
+	std::string shortname;
+	uint32_t price;
+};
+
+std::vector<ItemInfo> cached_item_list;
 
 class LootItem
 {
@@ -19,12 +30,17 @@ public:
 		offset = file_input.find("Price\": ", temp) + 8;
 		temp = file_input.find("},", offset) - 13;
 		price = std::stoi(file_input.substr(offset, temp - offset));
+
+		cached_item_list.push_back({ id, short_name, price });
+		return true;
 	}
 
 	std::string get_name()
 	{
 		uintptr_t name_pointer = memory::read<uintptr_t>((uintptr_t)this + 0x50);
 		const int name_size = memory::read<int>(name_pointer + 0x10) - 10;
+		if (name_size < 3)
+			return "Corpse";
 		return memory::get_unicode_str(name_pointer, name_size);
 	}
 
@@ -49,6 +65,7 @@ public:
 	Vector2 location;
 	std::string short_name;
 	std::string id;
+	float distance;
 };
 
 class Loot_List

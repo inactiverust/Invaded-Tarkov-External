@@ -184,6 +184,7 @@
     <ClInclude Include="math.hpp" />
     <ClInclude Include="memory.hpp" />
     <ClInclude Include="common.hpp" />
+    <ClInclude Include="mono.hpp" />
     <ClInclude Include="Movement.hpp" />
     <ClInclude Include="offsets.hpp" />
     <ClInclude Include="Physical.hpp" />

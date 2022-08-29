@@ -41,6 +41,7 @@ void update_player_list()
 
 void cheat_entry()
 {
+	std::ifstream file; file.open("loot.json"); std::stringstream ss; ss << file.rdbuf(); vars::loot_values = ss.str();
 	while (!should_exit)
 	{
 		Sleep(1);
@@ -49,6 +50,7 @@ void cheat_entry()
 	Sleep(40);
 
 	pointers::GOM = memory::read<GameObjectManager*>(pointers::unity_player + oGOM);
+	mono::init_functions();
 
 	if(!pointers::GOM)
 	{
@@ -62,37 +64,41 @@ void cheat_entry()
 
 	while (true)
 	{
-		update_player_list();
-		exfil_list.exfil_pointer_list = pointers::world->get_extract_list();
-		loot_list.loot_pointer_list = pointers::world->get_loot_list();
-		if (exfil_list.exfil_pointer_list.size() > 0 && local_player.player_class)
+		if (settings::is_in_raid)
 		{
-			camera.object = pointers::GOM->get_fps_camera();
-			local_player.setup();
-
-			features::infinite_stamina();
-			features::weapon_mods();
-			features::aimbot();
-			features::insta_aim();
-			//features::loot_esp();
-
-			if (settings::is_esp)
+			update_player_list();
+			exfil_list.exfil_pointer_list = pointers::world->get_extract_list();
+			if (exfil_list.exfil_pointer_list.size() > 0 && local_player.player_class)
 			{
-				features::esp();
+				loot_list.loot_pointer_list = pointers::world->get_loot_list();
+
+				camera.object = pointers::GOM->get_fps_camera();
+				local_player.setup();
+
+				features::infinite_stamina();
+				features::weapon_mods();
+				features::aimbot();
+				features::insta_aim();
+				features::loot_esp();
 				features::extract_esp();
-			}
+				features::loot_thru_walls();
+				features::thermal_vision();
+				features::esp();
 
-			auto stop = std::chrono::high_resolution_clock::now();
-			if (std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() > 10)
-			{
-				start = std::chrono::high_resolution_clock::now();
-				features::do_cham();
+
+				auto stop = std::chrono::high_resolution_clock::now();
+				if (std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() > 10)
+				{
+					start = std::chrono::high_resolution_clock::now();
+					features::do_cham();
+				}
 			}
-		}
-		else
-		{
-			vars::drawing_list.clear();
-			exfil_list.extract_info_list.clear();
+			else
+			{
+				vars::drawing_list.clear();
+				exfil_list.extract_info_list.clear();
+				loot_list.world_loot_list.clear();
+			}
 		}
 	}
 }
@@ -156,6 +162,7 @@ int main()
 	vars::target_pid = memory::get_pid(_("EscapeFromTarkov.exe"));
 
 	pointers::unity_player = memory::find_base_address(vars::target_pid, _(L"UnityPlayer.dll"));
+	mono_dll_address = memory::find_base_address(vars::target_pid, _(L"mono-2.0-bdwgc.dll"));
 
 	if (!pointers::unity_player)
 	{

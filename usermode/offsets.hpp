@@ -30,4 +30,4 @@
 #define oAngle 0x22c
 
 #define oHealthController 0x528
-#define oHealthBody 0x50
+#define oHealthBody 0x58

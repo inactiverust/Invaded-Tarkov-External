@@ -30,30 +30,20 @@ int d_operation = 0;
 class memory
 {
 public:
-	static std::string get_unicode_str(uintptr_t address, size_t size)
-	{
-		address = address + 0x14;
-		char16_t wcharTemp[64] = { '\0' };
-		memory::copy_memory(address, (uintptr_t)&wcharTemp, size * 2);
-		std::string u8_conv = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(wcharTemp);
-		return u8_conv;
-	}
-
 	static uint64_t GetComponentFromGameObject(uint64_t game_object, const char* component_name)
 	{
-		char Name[256];
+		char Name[18];
 
-		uint64_t Test = memory::read<uint64_t>(game_object + 0x30);
+		uintptr_t object = memory::read<uint64_t>(game_object + 0x30);
+		object = memory::read<uintptr_t>(object + 0x30);
 
-		for (int i = 0x8; i < 0x1000; i += 0x10)
+		for (int i = 0x8; i < 0x300; i += 0x10)
 		{
-			uint64_t Fields = memory::read<uint64_t>(memory::read<uint64_t>(Test + i) + 0x28);
+			uint64_t Fields = memory::read<uint64_t>(memory::read<uint64_t>(object + i) + 0x28);
 
 			uint64_t NameChain = memory::read_chain(Fields, { 0x0, 0x0, 0x48 });
 
-			memory::copy_memory(NameChain, (uintptr_t)&Name, 256);
-
-			std::cout << Name << "\n";
+			memory::copy_memory(NameChain, (uintptr_t)&Name, 18);
 
 			if (strcmp(Name, component_name) == 0)
 			{
@@ -63,6 +53,16 @@ public:
 
 		return 0;
 	}
+
+	static std::string get_unicode_str(uintptr_t address, size_t size)
+	{
+		address = address + 0x14;
+		char16_t wcharTemp[64] = { '\0' };
+		memory::copy_memory(address, (uintptr_t)&wcharTemp, size * 2);
+		std::string u8_conv = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(wcharTemp);
+		return u8_conv;
+	}
+
 	static std::string read_str(uintptr_t address, int size = STR_BUFFER_SIZE)
 	{
 		std::unique_ptr<char[]> buffer(new char[size]);

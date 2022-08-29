@@ -6,6 +6,7 @@ struct Extract_Info
 {
 	std::string name;
 	Vector2 screen_pos;
+	float distance;
 };
 
 class ExfiltrationPoint
