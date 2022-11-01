@@ -7,7 +7,7 @@
 #include "drawing.hpp"
 #include "features.hpp"
 #include "drawing.hpp"
-
+//c
 bool should_exit;
 bool do_once = true;
 
